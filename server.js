@@ -34,22 +34,55 @@ app.post('/api/jobs', async (req, res) => {
   }
 });
 
-// Extract contract from PDF
+// Extract contract from PDF/Image - handles multipart forms
 app.post('/api/contracts/extract', async (req, res) => {
   try {
-    const { image, mimeType } = req.body;
+    const { fields, files } = await parseFormData(req);
+    const file = files?.file;
     
-    if (!image) {
-      return res.status(400).json({ error: 'No image provided' });
+    if (!file) {
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    const extracted = await extractWithAI(image, mimeType || 'image/png');
+    const fs = require('fs');
+    const buffer = fs.readFileSync(file.path);
+    const base64 = buffer.toString('base64');
+    const mimeType = file.type || (file.name?.endsWith('.pdf') ? 'application/pdf' : 'image/png');
+
+    const extracted = await extractWithAI(base64, mimeType);
+    
+    fs.unlinkSync(file.path);
     res.json({ success: true, extracted });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// Parse multipart form data
+async function parseFormData(req) {
+  const busboy = require('busboy');
+  const path = require('path');
+  const fs = require('fs');
+  
+  return new Promise((resolve) => {
+    const fields = {};
+    const files = {};
+    const bb = busboy({ headers: req.headers });
+    
+    bb.on('file', (name, file, info) => {
+      const filepath = path.join('/tmp', Date.now() + '-' + info.filename);
+      const stream = fs.createWriteStream(filepath);
+      file.pipe(stream);
+      files[name] = { path: filepath, type: info.mimeType, name: info.filename };
+    });
+    
+    bb.on('field', (name, val) => { fields[name] = val; });
+    bb.on('close', () => resolve({ fields, files }));
+    
+    req.pipe(bb);
+  });
+}
 
 // Save contract to Google Sheet
 app.post('/api/contracts/save', async (req, res) => {
