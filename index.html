@@ -517,6 +517,55 @@
       alert('Lead converted to customer!');
     }
     
+    function convertLeadToJob(leadId) {
+      const leadIndex = appData.leads.findIndex(l => l.id === leadId);
+      if (leadIndex === -1) return;
+      
+      const lead = appData.leads[leadIndex];
+      
+      // First create the customer
+      const customerId = Date.now();
+      const customer = {
+        id: customerId,
+        name: lead.name,
+        phone: lead.phone,
+        email: lead.email,
+        address: lead.address,
+        source: lead.source,
+        jobs: 1,
+        totalSpent: 0,
+        leadId: leadId,
+        created: new Date().toISOString().split('T')[0]
+      };
+      appData.customers.push(customer);
+      
+      // Then create the job
+      const jobNum = String(appData.jobs.length + 1).padStart(3, '0');
+      const job = {
+        id: 'JOB-' + jobNum,
+        customerId: customerId,
+        customer: lead.name,
+        address: lead.address,
+        type: 'Replacement',
+        status: 'new',
+        startDate: '',
+        endDate: '',
+        crew: '',
+        value: 0,
+        notes: '',
+        created: new Date().toISOString().split('T')[0]
+      };
+      appData.jobs.push(job);
+      
+      // Mark lead as converted
+      lead.status = 'converted';
+      lead.customerId = customerId;
+      
+      saveToStorage();
+      renderAll();
+      alert('Lead converted to customer and job created!');
+    }
+    
     function convertCustomerToJob(customerId) {
       const customer = appData.customers.find(c => c.id === customerId);
       if (!customer) return;
@@ -565,7 +614,7 @@
           <td><span class="status ${lead.status}">${lead.status}</span></td>
           <td>${lead.followup || ''}</td>
           <td>
-            ${canConvert ? `<button class="btn btn-success" onclick="convertLeadToCustomer(${lead.id})">→ Customer</button>` : '<span class="status converted">Converted</span>'}
+            ${canConvert ? `<button class="btn btn-success" onclick="convertLeadToCustomer(${lead.id})">→ Customer</button> <button class="btn btn-primary" onclick="convertLeadToJob(${lead.id})">→ Job</button>` : '<span class="status converted">Converted</span>'}
             <button class="btn">Edit</button>
           </td>
         </tr>`;
