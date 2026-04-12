@@ -598,6 +598,7 @@
     function renderAll() {
       renderLeads();
       renderCustomers();
+      renderJobs();
     }
     
     function renderLeads() {
@@ -637,6 +638,24 @@
             <button class="btn btn-primary" onclick="convertCustomerToJob(${customer.id})">+ Job</button>
             <button class="btn">Edit</button>
           </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function renderJobs() {
+      const tbody = document.getElementById('jobs-table');
+      if (!tbody) return;
+      
+      tbody.innerHTML = appData.jobs.map(job => {
+        return `<tr>
+          <td>${job.id}</td>
+          <td>${job.customer}</td>
+          <td>${job.address}</td>
+          <td>${job.type}</td>
+          <td><span class="status ${job.status}">${job.status}</span></td>
+          <td>${job.startDate || '-'}</td>
+          <td>$${job.value.toLocaleString()}</td>
+          <td><button class="btn">Edit</button></td>
         </tr>`;
       }).join('');
     }
