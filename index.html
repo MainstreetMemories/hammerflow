@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HammerFlow - Build Your Business</title>
+  <style>
+    :root {
+      --primary: #1E3A5F;
+      --secondary: #FF6B35;
+      --bg: #F5F7FA;
+      --card: #FFFFFF;
+      --text: #2D3748;
+      --success: #38A169;
+      --warning: #D69E2E;
+      --danger: #E53E3E;
+      --sidebar-width: 240px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    .sidebar { width: var(--sidebar-width); background: var(--primary); color: white; padding: 20px; position: fixed; height: 100%; overflow-y: auto; }
+    .logo { font-size: 24px; font-weight: bold; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+    .logo span { color: var(--secondary); }
+    .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; }
+    .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); }
+    .nav-item.active { background: var(--secondary); }
+    .main { flex: 1; margin-left: var(--sidebar-width); padding: 30px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .header h1 { font-size: 28px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .stat-card h3 { font-size: 14px; color: #666; margin-bottom: 8px; }
+    .stat-card .value { font-size: 28px; font-weight: bold; color: var(--primary); }
+    .stat-card .change { font-size: 13px; margin-top: 5px; }
+    .stat-card .change.positive { color: var(--success); }
+    .stat-card .change.negative { color: var(--danger); }
+    .card { background: var(--card); border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 20px; }
+    .card-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 18px; }
+    .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: #f5f7fa; }
+    .btn-primary { background: var(--secondary); color: white; }
+    .btn-primary:hover { background: #e55a2b; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; font-weight: 600; font-size: 13px; text-transform: uppercase; color: #666; }
+    tr:hover { background: #f8f9fa; }
+    .status { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .status.new { background: #E3F2FD; color: #1565C0; }
+    .status.contacted { background: #FFF3E0; color: #E65100; }
+    .status.scheduled { background: #E8F5E9; color: #2E7D32; }
+    .status.completed { background: #F3E5F5; color: #7B1FA2; }
+    .status.paid { background: #E0F2F1; color: #00695C; }
+    .status.pending { background: #FFFDE7; color: #F9A825; }
+    .status.overdue { background: #FFEBEE; color: #C62828; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
+    .search-bar input { flex: 1; padding: 12px 15px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+    .modal-header h2 { font-size: 20px; }
+    .close { background: none; border: none; font-size: 24px; cursor: pointer; }
+    .quick-actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .action-btn { padding: 10px 15px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .action-btn:hover { background: #152a45; }
+    .chart-container { padding: 20px; height: 300px; display: flex; align-items: flex-end; gap: 10px; }
+    .chart-bar { flex: 1; background: var(--secondary); border-radius: 4px 4px 0 0; position: relative; }
+    .chart-bar span { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; }
+    .chart-bar .bar-value { position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: bold; }
+    .page { display: none; }
+    .page.active { display: block; }
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; padding: 10px; }
+      .logo span { display: none; }
+      .nav-item span { display: none; }
+      .main { margin-left: 60px; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">🔨 Hammer<span>Flow</span></div>
+    <div class="nav-item active" data-page="dashboard"><span>📊</span> <span>Dashboard</span></div>
+    <div class="nav-item" data-page="leads"><span>🎯</span> <span>Leads</span></div>
+    <div class="nav-item" data-page="customers"><span>👥</span> <span>Customers</span></div>
+    <div class="nav-item" data-page="jobs"><span>🏠</span> <span>Jobs</span></div>
+    <div class="nav-item" data-page="estimates"><span>📝</span> <span>Estimates</span></div>
+    <div class="nav-item" data-page="invoices"><span>💰</span> <span>Invoices</span></div>
+    <div class="nav-item" data-page="inventory"><span>📦</span> <span>Inventory</span></div>
+    <div class="nav-item" data-page="reports"><span>📈</span> <span>Reports</span></div>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1 id="page-title">Dashboard</h1>
+      <button class="btn btn-primary" onclick="showAddModal()">+ New</button>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="quick-actions">
+        <button class="action-btn" onclick="openModal('lead')">🎯 New Lead</button>
+        <button class="action-btn" onclick="openModal('customer')">👥 New Customer</button>
+        <button class="action-btn" onclick="openModal('job')">🏠 New Job</button>
+        <button class="action-btn" onclick="openModal('estimate')">📝 New Estimate</button>
+        <button class="action-btn" onclick="openModal('invoice')">💰 New Invoice</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Monthly Revenue</h3>
+          <div class="value">$24,500</div>
+          <div class="change positive">↑ 12% from last month</div>
+        </div>
+        <div class="stat-card">
+          <h3>Active Jobs</h3>
+          <div class="value">8</div>
+          <div class="change positive">↑ 3 this week</div>
+        </div>
+        <div class="stat-card">
+          <h3>Pending Leads</h3>
+          <div class="value">12</div>
+          <div class="change">5 follow-ups needed</div>
+        </div>
+        <div class="stat-card">
+          <h3>Outstanding</h3>
+          <div class="value">$8,200</div>
+          <div class="change negative">3 overdue</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>Recent Activity</h2></div>
+        <table>
+          <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="activity-table">
+            <tr><td>Apr 12</td><td>Invoice</td><td>Smith - 123 Oak St</td><td>$4,500</td><td><span class="status paid">Paid</span></td></tr>
+            <tr><td>Apr 11</td><td>Job</td><td>Johnson - Roof Repair</td><td>-</td><td><span class="status scheduled">In Progress</span></td></tr>
+            <tr><td>Apr 11</td><td>Lead</td><td>Mike Wilson</td><td>-</td><td><span class="status new">New</span></td></tr>
+            <tr><td>Apr 10</td><td>Estimate</td><td>Williams - Full Replace</td><td>$12,000</td><td><span class="status scheduled">Sent</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADS -->
+    <div id="page-leads" class="page">
+      <div class="search-bar"><input type="text" placeholder="Search leads..." id="lead-search" onkeyup="filterTable('lead')"></div>
+      <div class="card">
+        <div class="card-header"><h2>All Leads</h2></div>
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Source</th><th>Status</th><th>Follow Up</th><th>Actions</th></tr></thead>
+          <tbody id="leads-table">
+            <tr><td>Mike Wilson</td><td>555-123-4567</td><td>123 Main St</td><td>Google</td><td><span class="status new">New</span></td><td>Today</td><td><button class="btn">Edit</button></td></tr>
+            <tr><td>Sarah Johnson</td><td>555-234-5678</td><td>456 Oak Ave</td><td>Referral</td><td><span class="status scheduled">Estimate Sent</span></td><td>Apr 14</td><td><button class="btn">Edit</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div id="page-customers" class="page">
+      <div class="card">
+        <div class="card-header"><h2>All Customers</h2><button class="btn btn-primary" onclick="openModal('customer')">+ Add Customer</button></div>
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Jobs</th><th>Total Spent</th></tr></thead>
+          <tbody id="customers-table">
+            <tr><td>John Smith</td><td>555-111-2222</td><td>john@email.com</td><td>123 Oak St</td><td>3</td><td>$18,500</td></tr>
+            <tr><td>Mary Johnson</td><td>555-333-4444</td><td>mary@email.com</td><td>456 Maple Dr</td><td>1</td><td>$4,200</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- JOBS -->
+    <div id="page-jobs" class="page">
+      <div class="card">
+        <div class="card-header"><h2>All Jobs</h2><button class="btn btn-primary" onclick="openModal('job')">+ Add Job</button></div>
+        <table>
+          <thead><tr><th>Job #</th><th>Customer</th><th>Address</th><th>Type</th><th>Status</th><th>Start</th><th>Value</th></tr></thead>
+          <tbody id="jobs-table">
+            <tr><td>JOB-001</td><td>Smith Family</td><td>123 Oak St</td><td>Replace</td><td><span class="status scheduled">In Progress</span></td><td>Apr 10</td><td>$8,500</td></tr>
+            <tr><td>JOB-002</td><td>Johnson</td><td>456 Maple Dr</td><td>Repair</td><td><span class="status new">Scheduled</span></td><td>Apr 15</td><td>$1,200</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ESTIMATES -->
+    <div id="page-estimates" class="page">
+      <div class="card">
+        <div class="card-header"><h2>All Estimates</h2><button class="btn btn-primary" onclick="openModal('estimate')">+ Create Estimate</button></div>
+        <table>
+          <thead><tr><th>#</th><th>Customer</th><th>Address</th><th>Type</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+          <tbody id="estimates-table">
+            <tr><td>EST-001</td><td>Williams</td><td>789 Pine Rd</td><td>Full Replace</td><td>$12,000</td><td><span class="status scheduled">Sent</span></td><td>Apr 10</td></tr>
+            <tr><td>EST-002</td><td>Brown</td><td>321 Cedar Ln</td><td>Repair</td><td>$800</td><td><span class="status new">Draft</span></td><td>Apr 12</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVOICES -->
+    <div id="page-invoices" class="page">
+      <div class="card">
+        <div class="card-header"><h2>All Invoices</h2><button class="btn btn-primary" onclick="openModal('invoice')">+ Create Invoice</button></div>
+        <table>
+          <thead><tr><th>#</th><th>Customer</th><th>Job</th><th>Amount</th><th>Status</th><th>Due</th><th>Paid</th></tr></thead>
+          <tbody id="invoices-table">
+            <tr><td>INV-001</td><td>Smith</td><td>JOB-001</td><td>$4,500</td><td><span class="status paid">Paid</span></td><td>Apr 1</td><td>Apr 5</td></tr>
+            <tr><td>INV-002</td><td>Johnson</td><td>JOB-002</td><td>$1,200</td><td><span class="status pending">Pending</span></td><td>Apr 20</td><td>-</td></tr>
+            <tr><td>INV-003</td><td>Davis</td><td>JOB-003</td><td>$6,800</td><td><span class="status overdue">Overdue</span></td><td>Apr 1</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div id="page-inventory" class="page">
+      <div class="card">
+        <div class="card-header"><h2>Material Inventory</h2><button class="btn btn-primary" onclick="openModal('inventory')">+ Add Material</button></div>
+        <table>
+          <thead><tr><th>Material</th><th>Unit</th><th>Cost/Unit</th><th>In Stock</th><th>Min Stock</th><th>Status</th></tr></thead>
+          <tbody id="inventory-table">
+            <tr><td>Architectural Shingles</td><td>bundle</td><td>$85</td><td>45</td><td>20</td><td><span class="status new">OK</span></td></tr>
+            <tr><td>Metal Shingles</td><td>sq ft</td><td>$4.50</td><td>12</td><td>50</td><td><span class="status overdue">Low</span></td></tr>
+            <tr><td>Underlayment</td><td>roll</td><td>$45</td><td>8</td><td>10</td><td><span class="status pending">Low</span></td></tr>
+            <tr><td>Drip Edge</td><td>ft</td><td>$2.25</td><td>500</td><td>200</td><td><span class="status new">OK</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REPORTS -->
+    <div id="page-reports" class="page">
+      <div class="stats-grid">
+        <div class="stat-card"><h3>Total Revenue</h3><div class="value">$124,500</div><div class="change positive">YTD</div></div>
+        <div class="stat-card"><h3>Jobs Completed</h3><div class="value">24</div><div class="change positive">This year</div></divdiv>
+        <div class="stat-card"><h3>Avg Job Value</h3><div class="value">$5,187</div></div>
+        <div class="stat-card"><h3>Conversion Rate</h3><div class="value">42%</div><div class="change positive">↑ 8%</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>Revenue by Month</h2></div>
+        <div class="chart-container">
+          <div class="chart-bar" style="height: 40%"><span class="bar-value">$8K</span><span>Jan</span></div>
+          <div class="chart-bar" style="height: 55%"><span class="bar-value">$11K</span><span>Feb</span></div>
+          <div class="chart-bar" style="height: 50%"><span class="bar-value">$10K</span><span>Mar</span></div>
+          <div class="chart-bar" style="height: 100%"><span class="bar-value">$20K</span><span>Apr</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h2>Job Profitability</h2></div>
+        <table>
+          <thead><tr><th>Job</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Margin</th></tr></thead>
+          <tbody>
+            <tr><td>JOB-001</td><td>$8,500</td><td>$5,100</td><td>$3,400</td><td style="color:var(--success)">40%</td></tr>
+            <tr><td>JOB-002</td><td>$4,200</td><td>$3,600</td><td>$600</td><td style="color:var(--warning)">14%</td></tr>
+            <tr><td>JOB-003</td><td>$12,000</td><td>$8,400</td><td>$3,600</td><td style="color:var(--success)">30%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD LEAD MODAL -->
+  <div class="modal" id="modal-lead">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Add New Lead</h2><button class="close" onclick="closeModal('lead')">×</button></div>
+      <form onsubmit="saveItem('lead', event)">
+        <div class="form-row">
+          <div class="form-group"><label>Name *</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Phone *</label><input type="tel" name="phone" required></div>
+        </div>
+        <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+        <div class="form-group"><label>Property Address *</label><input type="text" name="address" required></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Lead Source</label>
+            <select name="source"><option value="Google">Google</option><option value="Referral">Referral</option><option value="Door Knock">Door Knock</option><option value="Facebook">Facebook</option><option value="Other">Other</option></select>
+          </div>
+          <div class="form-group"><label>Follow Up</label><input type="date" name="followup"></div>
+        </div>
+        <div class="form-group"><label>Notes</label><textarea name="notes" rows="3"></textarea></div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Save Lead</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD CUSTOMER MODAL -->
+  <div class="modal" id="modal-customer">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Add Customer</h2><button class="close" onclick="closeModal('customer')">×</button></div>
+      <form onsubmit="saveItem('customer', event)">
+        <div class="form-row">
+          <div class="form-group"><label>Name *</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Phone *</label><input type="tel" name="phone" required></div>
+        </div>
+        <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+        <div class="form-group"><label>Property Address</label><input type="text" name="address"></div>
+        <div class="form-group"><label>Mailing Address</label><input type="text" name="mailing"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Save Customer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD JOB MODAL -->
+  <div class="modal" id="modal-job">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Add Job</h2><button class="close" onclick="closeModal('job')">×</button></div>
+      <form onsubmit="saveItem('job', event)">
+        <div class="form-row">
+          <div class="form-group"><label>Customer *</label><input type="text" name="customer" required></div>
+          <div class="form-group"><label>Job Type</label>
+            <select name="type"><option value="Replace">Roof Replace</option><option value="Repair">Repair</option><option value="New Build">New Build</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Property Address *</label><input type="text" name="address" required></div>
+        <div class="form-row">
+          <div class="form-group"><label>Start Date</label><input type="date" name="start"></div>
+          <div class="form-group"><label>Assigned Crew</label><input type="text" name="crew"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Save Job</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD ESTIMATE MODAL -->
+  <div class="modal" id="modal-estimate">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Create Estimate</h2><button class="close" onclick="closeModal('estimate')">×</button></div>
+      <form onsubmit="saveItem('estimate', event)">
+        <div class="form-row">
+          <div class="form-group"><label>Customer *</label><input type="text" name="customer" required></div>
+          <div class="form-group"><label>Address *</label><input type="text" name="address" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Roof Type</label>
+            <select name="roofType"><option value="Shingle">Asphalt Shingle</option><option value="Metal">Metal</option><option value="Flat">Flat</option><option value="Tile">Tile</option></select>
+          </div>
+          <div class="form-group"><label>Roof Area (sq ft)</label><input type="number" name="area"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Materials Cost</label><input type="number" name="materials" placeholder="0.00"></div>
+          <div class="form-group"><label>Labor Cost</label><input type="number" name="labor" placeholder="0.00"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Overhead %</label><input type="number" name="overhead" value="15"></div>
+          <div class="form-group"><label>Profit %</label><input type="number" name="profit" value="20"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Save Estimate</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD INVOICE MODAL -->
+  <div class="modal" id="modal-invoice">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Create Invoice</h2><button class="close" onclick="closeModal('invoice')">×</button></div>
+      <form onsubmit="saveItem('invoice', event)">
+        <div class="form-row">
+          <div class="form-group"><label>Customer *</label><input type="text" name="customer" required></div>
+          <div class="form-group"><label>Job #</label><input type="text" name="job"></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea name="description" rows="2"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Amount *</label><input type="number" name="amount" required></div>
+          <div class="form-group"><label>Due Date</label><input type="date" name="due"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Create Invoice</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADD INVENTORY MODAL -->
+  <div class="modal" id="modal-inventory">
+    <div class="modal-content">
+      <div class="modal-header"><h2>Add Material</h2><button class="close" onclick="closeModal('inventory')">×</button></div>
+      <form onsubmit="saveItem('inventory', event)">
+        <div class="form-row">
+          <div class="form-group"><label>Material Name *</label><input type="text" name="name" required></div>
+          <div class="form-group"><label>Unit</label><input type="text" name="unit" placeholder="bundle, sq ft, roll"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Cost per Unit</label><input type="number" name="cost" step="0.01"></div>
+          <div class="form-group"><label>Quantity</label><input type="number" name="qty"></div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Add Material</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Navigation
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        const page = this.dataset.page;
+        document.getElementById('page-' + page).classList.add('active');
+        const titles = { dashboard: 'Dashboard', leads: 'Leads', customers: 'Customers', jobs: 'Jobs', estimates: 'Estimates', invoices: 'Invoices', inventory: 'Inventory', reports: 'Reports' };
+        document.getElementById('page-title').textContent = titles[page];
+      });
+    });
+
+    // Modals
+    function openModal(type) { document.getElementById('modal-' + type).classList.add('active'); }
+    function closeModal(type) { document.getElementById('modal-' + type).classList.remove('active'); }
+    
+    function showAddModal() {
+      openModal('lead'); // Default to lead
+    }
+
+    // Save data
+    function saveItem(type, e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      const obj = Object.fromEntries(data);
+      console.log('Saved ' + type + ':', obj);
+      closeModal(type);
+      alert(type.charAt(0).toUpperCase() + type.slice(1) + ' saved successfully!');
+      form.reset();
+    }
+
+    // Filter tables
+    function filterTable(type) {
+      const search = document.getElementById(type + '-search')?.value.toLowerCase() || '';
+      const table = document.getElementById(type + 's-table');
+      if (!table) return;
+      table.querySelectorAll('tr').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(search) ? '' : 'none';
+      });
+    }
+
+    // Close modal on outside click
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+      });
+    });
+
+    // Demo data storage
+    const appData = {
+      leads: [],
+      customers: [],
+      jobs: [],
+      estimates: [],
+      invoices: [],
+      inventory: []
+    };
+
+    // Save to localStorage
+    function saveToStorage() {
+      localStorage.setItem('hammerflow', JSON.stringify(appData));
+    }
+
+    console.log('HammerFlow v1.1 loaded');
+  </script>
+</body>
+</html>
