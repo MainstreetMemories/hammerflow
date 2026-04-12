@@ -50,9 +50,28 @@
     .stat-card .change.negative { color: var(--danger); }
     
     /* Cards */
-    .card { background: var(--card); border-radius: 20px; box-shadow: 0 4px 25px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; border: 1px solid rgba(0,0,0,0.04); }
+    .card { background: var(--card); border-radius: 20px; box-shadow: 0 4px 25px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 24px; border: 1px solid rgba(0,0,0,0.04); animation: slideUp 0.5s ease-out; }
     .card-header { padding: 24px 28px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
     .card-header h2 { font-size: 18px; font-weight: 600; }
+    
+    /* Animations */
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+    @keyframes glow { 0%, 100% { box-shadow: 0 0 20px rgba(245,176,65,0.3); } 50% { box-shadow: 0 0 40px rgba(245,176,65,0.6); } }
+    
+    .stat-card { animation: slideUp 0.5s ease-out; animation-fill-mode: both; }
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    
+    .weather-day { animation: fadeIn 0.5s ease-out; animation-fill-mode: both; }
+    
+    /* Flashy scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(var(--secondary), var(--accent)); border-radius: 4px; }
     
     /* Buttons */
     .btn { padding: 12px 24px; border-radius: 12px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; font-family: inherit; }
@@ -103,6 +122,7 @@
     .quick-actions { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; }
     .action-btn { padding: 14px 20px; background: white; color: var(--text); border: 1px solid #e5e7eb; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
     .action-btn:hover { background: var(--secondary); color: #0f0f1a; border-color: var(--secondary); transform: translateY(-2px); box-shadow: 0 4px 15px rgba(245,176,65,0.3); }
+    .action-btn.flash { background: linear-gradient(135deg, #f5b041 0%, #e8b923 100%); color: #0f0f1a; border: none; font-weight: 600; animation: glow 2s infinite; }
     .chart-container { padding: 20px; height: 300px; display: flex; align-items: flex-end; gap: 10px; }
     .chart-bar { flex: 1; background: var(--secondary); border-radius: 4px 4px 0 0; position: relative; }
     .chart-bar span { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 12px; }
@@ -144,11 +164,12 @@
     <!-- DASHBOARD -->
     <div id="page-dashboard" class="page active">
       <div class="quick-actions">
+        <button class="action-btn flash" onclick="document.getElementById('contract-upload').click()">📄 Scan Contract</button>
         <button class="action-btn" onclick="openModal('lead')">🎯 New Lead</button>
         <button class="action-btn" onclick="openModal('customer')">👥 New Customer</button>
         <button class="action-btn" onclick="openModal('job')">🏠 New Job</button>
-        <button class="action-btn" onclick="openModal('estimate')">📝 New Estimate</button>
         <button class="action-btn" onclick="openModal('invoice')">💰 New Invoice</button>
+        <input type="file" id="contract-upload" accept="image/*,.pdf" style="display:none" onchange="handleContractUpload(this)">
       </div>
       <div class="stats-grid">
         <div class="stat-card">
@@ -920,6 +941,60 @@
     }
 
     console.log('HammerFlow v1.1 loaded');
+    
+    // Contract upload handler
+    async function handleContractUpload(input) {
+      const file = input.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const base64 = e.target.result.split(',')[1];
+        const mimeType = file.type || 'image/png';
+        
+        // Show loading
+        const btn = document.querySelector('.action-btn.flash');
+        btn.textContent = '⏳ Scanning...';
+        
+        try {
+          const response = await fetch('/api/contracts/extract', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64, mimeType })
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            const data = result.extracted;
+            const confirmMsg = `Contract scanned!\n\nCustomer: ${data.customer}\nPhone: ${data.phone}\nAddress: ${data.address}\nPrice: $${data.contractPrice}\nShingle: ${data.shingleType}\n\nSave to jobs?`;
+            if (confirm(confirmMsg)) {
+              await fetch('/api/contracts/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+              });
+              alert('Contract saved to Google Sheet!');
+            }
+          } else {
+            alert('Scan failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error: ' + err.message);
+        }
+        
+        btn.textContent = '📄 Scan Contract';
+      };
+      
+      if (file.type === 'application/pdf') {
+        // For PDF, we'd need to convert first - simplified for now
+        alert('PDF support coming soon! Please upload an image for now.');
+      } else {
+        reader.readAsDataURL(file);
+      }
+      
+      input.value = ''; // Reset
+    }
     
     // Weather check function
     function checkWeather() {
