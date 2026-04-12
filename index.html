@@ -40,6 +40,8 @@
     .btn { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; transition: all 0.2s; background: #f5f7fa; }
     .btn-primary { background: var(--secondary); color: white; }
     .btn-primary:hover { background: #e55a2b; }
+    .btn-success { background: #4CAF50; color: white; }
+    .btn-success:hover { background: #388E3C; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
     th { background: #f8f9fa; font-weight: 600; font-size: 13px; text-transform: uppercase; color: #666; }
@@ -52,6 +54,7 @@
     .status.paid { background: #E0F2F1; color: #00695C; }
     .status.pending { background: #FFFDE7; color: #F9A825; }
     .status.overdue { background: #FFEBEE; color: #C62828; }
+    .status.converted { background: #E8F5E9; color: #2E7D32; }
     .search-bar { display: flex; gap: 10px; margin-bottom: 20px; }
     .search-bar input { flex: 1; padding: 12px 15px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; }
     .form-group { margin-bottom: 20px; }
@@ -166,7 +169,7 @@
       <div class="card">
         <div class="card-header"><h2>All Customers</h2><button class="btn btn-primary" onclick="openModal('customer')">+ Add Customer</button></div>
         <table>
-          <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Jobs</th><th>Total Spent</th></tr></thead>
+          <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Jobs</th><th>Total Spent</th><th>Actions</th></tr></thead>
           <tbody id="customers-table">
             <tr><td>John Smith</td><td>555-111-2222</td><td>john@email.com</td><td>123 Oak St</td><td>3</td><td>$18,500</td></tr>
             <tr><td>Mary Johnson</td><td>555-333-4444</td><td>mary@email.com</td><td>456 Maple Dr</td><td>1</td><td>$4,200</td></tr>
@@ -445,20 +448,152 @@
 
     // Demo data storage
     const appData = {
-      leads: [],
-      customers: [],
-      jobs: [],
+      leads: [
+        { id: 1, name: 'Mike Wilson', phone: '555-123-4567', email: 'mike@email.com', address: '123 Main St', source: 'Google', status: 'new', followup: '2026-04-12', notes: '', created: '2026-04-11' },
+        { id: 2, name: 'Sarah Johnson', phone: '555-234-5678', email: 'sarah@email.com', address: '456 Oak Ave', source: 'Referral', status: 'scheduled', followup: '2026-04-14', notes: 'Interested in metal roof', created: '2026-04-10' },
+        { id: 3, name: 'Tom Brown', phone: '555-345-6789', email: 'tom@email.com', address: '789 Pine Rd', source: 'Door Knock', status: 'contacted', followup: '2026-04-15', notes: '', created: '2026-04-09' }
+      ],
+      customers: [
+        { id: 1, name: 'John Smith', phone: '555-111-2222', email: 'john@email.com', address: '123 Oak St', jobs: 3, totalSpent: 18500, created: '2025-06-15' },
+        { id: 2, name: 'Mary Johnson', phone: '555-333-4444', email: 'mary@email.com', address: '456 Maple Dr', jobs: 1, totalSpent: 4200, created: '2025-08-20' }
+      ],
+      jobs: [
+        { id: 'JOB-001', customerId: 1, customer: 'Smith Family', address: '123 Oak St', type: 'Replace', status: 'scheduled', startDate: '2026-04-10', endDate: '', crew: 'Crew A', value: 8500, notes: '', created: '2026-04-08' },
+        { id: 'JOB-002', customerId: 2, customer: 'Johnson', address: '456 Maple Dr', type: 'Repair', status: 'new', startDate: '2026-04-15', endDate: '', crew: '', value: 1200, notes: '', created: '2026-04-11' }
+      ],
       estimates: [],
       invoices: [],
       inventory: []
     };
+
+    // Load from localStorage
+    function initApp() {
+      const saved = localStorage.getItem('hammerflow');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.leads?.length) appData.leads = parsed.leads;
+        if (parsed.customers?.length) appData.customers = parsed.customers;
+        if (parsed.jobs?.length) appData.jobs = parsed.jobs;
+        if (parsed.estimates?.length) appData.estimates = parsed.estimates;
+        if (parsed.invoices?.length) appData.invoices = parsed.invoices;
+        if (parsed.inventory?.length) appData.inventory = parsed.inventory;
+      }
+      renderAll();
+    }
 
     // Save to localStorage
     function saveToStorage() {
       localStorage.setItem('hammerflow', JSON.stringify(appData));
     }
 
+    // ============ PIPELINE CONVERSIONS ============
+    function convertLeadToCustomer(leadId) {
+      const leadIndex = appData.leads.findIndex(l => l.id === leadId);
+      if (leadIndex === -1) return;
+      
+      const lead = appData.leads[leadIndex];
+      const customerId = Date.now();
+      const customer = {
+        id: customerId,
+        name: lead.name,
+        phone: lead.phone,
+        email: lead.email,
+        address: lead.address,
+        source: lead.source,
+        jobs: 0,
+        totalSpent: 0,
+        leadId: leadId,
+        created: new Date().toISOString().split('T')[0]
+      };
+      
+      appData.customers.push(customer);
+      
+      // Mark lead as converted
+      lead.status = 'converted';
+      lead.customerId = customerId;
+      
+      saveToStorage();
+      renderAll();
+      alert('Lead converted to customer!');
+    }
+    
+    function convertCustomerToJob(customerId) {
+      const customer = appData.customers.find(c => c.id === customerId);
+      if (!customer) return;
+      
+      const jobNum = String(appData.jobs.length + 1).padStart(3, '0');
+      const job = {
+        id: 'JOB-' + jobNum,
+        customerId: customer.id,
+        customer: customer.name,
+        address: customer.address,
+        type: 'Replacement',
+        status: 'new',
+        startDate: '',
+        endDate: '',
+        crew: '',
+        value: 0,
+        notes: '',
+        created: new Date().toISOString().split('T')[0]
+      };
+      
+      appData.jobs.push(job);
+      customer.jobs = (customer.jobs || 0) + 1;
+      
+      saveToStorage();
+      renderAll();
+      alert('Job created for ' + customer.name);
+    }
+    
+    // ============ RENDER FUNCTIONS ============
+    function renderAll() {
+      renderLeads();
+      renderCustomers();
+    }
+    
+    function renderLeads() {
+      const tbody = document.getElementById('leads-table');
+      if (!tbody) return;
+      
+      tbody.innerHTML = appData.leads.map(lead => {
+        const canConvert = lead.status !== 'converted';
+        return `<tr>
+          <td>${lead.name}</td>
+          <td>${lead.phone}</td>
+          <td>${lead.address}</td>
+          <td>${lead.source}</td>
+          <td><span class="status ${lead.status}">${lead.status}</span></td>
+          <td>${lead.followup || ''}</td>
+          <td>
+            ${canConvert ? `<button class="btn btn-success" onclick="convertLeadToCustomer(${lead.id})">→ Customer</button>` : '<span class="status converted">Converted</span>'}
+            <button class="btn">Edit</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+    
+    function renderCustomers() {
+      const tbody = document.getElementById('customers-table');
+      if (!tbody) return;
+      
+      tbody.innerHTML = appData.customers.map(customer => {
+        return `<tr>
+          <td>${customer.name}</td>
+          <td>${customer.phone}</td>
+          <td>${customer.email || ''}</td>
+          <td>${customer.address}</td>
+          <td>${customer.jobs || 0}</td>
+          <td>$${(customer.totalSpent || 0).toLocaleString()}</td>
+          <td>
+            <button class="btn btn-primary" onclick="convertCustomerToJob(${customer.id})">+ Job</button>
+            <button class="btn">Edit</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
     console.log('HammerFlow v1.1 loaded');
+    initApp();
   </script>
 </body>
 </html>

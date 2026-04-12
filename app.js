@@ -203,6 +203,61 @@ const HammerFlow = {
     return job;
   },
   
+  // ============ PIPELINE CONVERSIONS ============
+  convertLeadToCustomer(leadId) {
+    const lead = this.data.leads.find(l => l.id === leadId);
+    if (!lead) return null;
+    
+    const customer = {
+      name: lead.name,
+      phone: lead.phone,
+      email: lead.email,
+      address: lead.address,
+      source: lead.source,
+      status: 'active',
+      jobs: 0,
+      totalSpent: 0,
+      leadId: leadId,
+      created: new Date().toISOString().split('T')[0]
+    };
+    
+    const newCustomer = this.addCustomer(customer);
+    
+    // Mark lead as converted
+    lead.status = 'converted';
+    lead.customerId = newCustomer.id;
+    this.save();
+    
+    return newCustomer;
+  },
+  
+  convertCustomerToJob(customerId, jobData = {}) {
+    const customer = this.data.customers.find(c => c.id === customerId);
+    if (!customer) return null;
+    
+    const job = {
+      customerId: customer.id,
+      customer: customer.name,
+      address: customer.address,
+      type: jobData.type || 'Replacement',
+      status: 'new',
+      startDate: jobData.startDate || '',
+      endDate: '',
+      crew: '',
+      value: jobData.value || 0,
+      notes: jobData.notes || '',
+      created: new Date().toISOString().split('T')[0]
+    };
+    
+    const newJob = this.addJob(job);
+    
+    // Update customer stats
+    customer.jobs = (customer.jobs || 0) + 1;
+    this.save();
+    
+    return newJob;
+  },
+  
   addEstimate(data) {
     const estNum = String(this.data.estimates.length + 1).padStart(3, '0');
     const calc = this.calculators.calculateEstimate(
