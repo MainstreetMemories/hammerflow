@@ -132,8 +132,7 @@
     <div class="nav-item" data-page="invoices"><span>💰</span> <span>Invoices</span></div>
     <div class="nav-item" data-page="inventory"><span>📦</span> <span>Inventory</span></div>
     <div class="nav-item" data-page="reports"><span>📈</span> <span>Reports</span></div>
-    <div class="nav-item" data-page="inventory"><span>📦</span> <span>Inventory</span></div>
-    <div class="nav-item" data-page="reports"><span>📈</span> <span>Reports</span></div>
+    <div class="nav-item" data-page="admin"><span>⚙️</span> <span>Admin</span></div>
   </div>
 
   <div class="main">
@@ -173,6 +172,58 @@
           <div class="change">This week</div>
         </div>
       </div>
+      
+      <!-- Weather Forecast -->
+      <div class="card">
+        <div class="card-header"><h2>🌤️ 7-Day Weather Forecast</h2></div>
+        <div style="padding:20px;overflow-x:auto;">
+          <div style="display:flex;gap:12px;min-width:800px;">
+            <div style="min-width:110px;text-align:center;padding:15px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;">
+              <div style="font-weight:600;color:#2e7d32;">Today</div>
+              <div style="font-size:28px;">☀️</div>
+              <div>78°F</div>
+              <div style="font-size:11px;color:#666;">✅ Good</div>
+            </div>
+            <div style="min-width:110px;text-align:center;padding:15px;background:#f8f9fa;border-radius:12px;">
+              <div style="font-weight:600;">Mon</div>
+              <div style="font-size:28px;">⛅</div>
+              <div>75°F</div>
+              <div style="font-size:11px;color:#666;">✅ Good</div>
+            </div>
+            <div style="min-width:110px;text-align:center;padding:15px;background:#fff3e0;border-radius:12px;">
+              <div style="font-weight:600;">Tue</div>
+              <div style="font-size:28px;">🌧️</div>
+              <div>62°F</div>
+              <div style="font-size:11px;color:#e65100;">⚠️ Rain</div>
+            </div>
+            <div style="min-width:110px;text-align:center;padding:15px;background:#f8f9fa;border-radius:12px;">
+              <div style="font-weight:600;">Wed</div>
+              <div style="font-size:28px;">⛅</div>
+              <div>70°F</div>
+              <div style="font-size:11px;color:#666;">✅ Good</div>
+            </div>
+            <div style="min-width:110px;text-align:center;padding:15px;background:#e8f5e9;border-radius:12px;">
+              <div style="font-weight:600;">Thu</div>
+              <div style="font-size:28px;">☀️</div>
+              <div>80°F</div>
+              <div style="font-size:11px;color:#2e7d32;">✅ Great</div>
+            </div>
+            <div style="min-width:110px;text-align:center;padding:15px;background:#e8f5e9;border-radius:12px;">
+              <div style="font-weight:600;">Fri</div>
+              <div style="font-size:28px;">☀️</div>
+              <div>82°F</div>
+              <div style="font-size:11px;color:#2e7d32;">✅ Great</div>
+            </div>
+            <div style="min-width:110px;text-align:center;padding:15px;background:#f8f9fa;border-radius:12px;">
+              <div style="font-weight:600;">Sat</div>
+              <div style="font-size:28px;">⛅</div>
+              <div>77°F</div>
+              <div style="font-size:11px;color:#666;">✅ Good</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div class="card">
         <div class="card-header"><h2>Recent Activity</h2></div>
         <table>
@@ -396,6 +447,70 @@
         </table>
       </div>
     </div>
+    
+    <!-- ADMIN -->
+    <div id="page-admin" class="page">
+      <div class="stats-grid">
+        <div class="stat-card"><h3>Vendors</h3><div class="value" id="admin-vendors">8</div><div class="change">Active vendors</div></div>
+        <div class="stat-card"><h3>Sales Team</h3><div class="value" id="admin-sales">3</div><div class="change">Commission-based</div></div>
+        <div class="stat-card"><h3>Total Expenses</h3><div class="value">$12,450</div><div class="change">This month</div></div>
+        <div class="stat-card"><h3>Net Cash Flow</h3><div class="value">$15,200</div><div class="change positive">In - Out</div></div>
+      </div>
+      
+      <!-- Vendors -->
+      <div class="card">
+        <div class="card-header"><h2>🏢 Vendors</h2><button class="btn btn-primary" onclick="openModal('vendor')">+ Add Vendor</button></div>
+        <table>
+          <thead><tr><th>Company</th><th>Contact</th><th>Phone</th><th>Category</th><th>Balance</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td>ABC Supply Co</td><td>John Smith</td><td>555-111-2222</td><td>Materials</td><td>$2,400</td><td><button class="btn">Edit</button></td></tr>
+            <tr><td>Metal Roofs Inc</td><td>Sarah Jones</td><td>555-333-4444</td><td>Materials</td><td>$1,800</td><td><button class="btn">Edit</button></td></tr>
+            <tr><td>Deck Pros</td><td>Mike Brown</td><td>555-555-6666</td><td>Subcontractor</td><td>$3,200</td><td><button class="btn">Edit</button></td></tr>
+            <tr><td>FastFlash</td><td>Lisa Wilson</td><td>555-777-8888</td><td>Materials</td><td>$850</td><td><button class="btn">Edit</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Sales Team -->
+      <div class="card">
+        <div class="card-header"><h2>💼 Sales Team (Commission)</h2><button class="btn btn-primary" onclick="openModal('sales')">+ Add Salesperson</button></div>
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Commission %</th><th>Closed (YTD)</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td>Tom Harris</td><td>555-123-9876</td><td>tom@email.com</td><td>5%</td><td>$45,000</td><td><button class="btn">Edit</button></td></tr>
+            <tr><td>Jessica Lee</td><td>555-234-8765</td><td>jess@email.com</td><td>5%</td><td>$32,000</td><td><button class="btn">Edit</button></td></tr>
+            <tr><td>Mark Wilson</td><td>555-345-7654</td><td>mark@email.com</td><td>Owner</td><td>$0</td><td><button class="btn">Edit</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Money In -->
+      <div class="card">
+        <div class="card-header"><h2>💰 Money Received</h2><button class="btn btn-primary" onclick="openModal('payment-in')">+ Record Payment</button></div>
+        <table>
+          <thead><tr><th>Date</th><th>Customer</th><th>Job</th><th>Source</th><th>Amount</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td>Apr 12</td><td>Smith Family</td><td>JOB-001</td><td>Insurance</td><td style="color:var(--success);font-weight:700;">+$4,860</td><td><button class="btn">View</button></td></tr>
+            <tr><td>Apr 10</td><td>Johnson</td><td>JOB-002</td><td>Homeowner</td><td style="color:var(--success);font-weight:700;">+$1,296</td><td><button class="btn">View</button></td></tr>
+          </tbody>
+          <tfoot><tr style="background:#e8f5e9;font-weight:700;"><td colspan="4">Total Received</td><td style="color:var(--success);">$6,156</td><td></td></tr></tfoot>
+        </table>
+      </div>
+      
+      <!-- Money Out -->
+      <div class="card">
+        <div class="card-header"><h2>💸 Money Paid</h2><button class="btn btn-primary" onclick="openModal('payment-out')">+ Record Expense</button></div>
+        <table>
+          <thead><tr><th>Date</th><th>Vendor/Employee</th><th>Description</th><th>Job</th><th>Amount</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td>Apr 11</td><td>ABC Supply</td><td>Shingles</td><td>JOB-001</td><td style="color:var(--danger);font-weight:700;">-$2,800</td><td><button class="btn">View</button></td></tr>
+            <tr><td>Apr 10</td><td>Crew A</td><td>Labor</td><td>JOB-001</td><td style="color:var(--danger);font-weight:700;">-$1,500</td><td><button class="btn">View</button></td></tr>
+            <tr><td>Apr 09</td><td>Metal Roofs</td><td>Metal shingles</td><td>JOB-003</td><td style="color:var(--danger);font-weight:700;">-$4,200</td><td><button class="btn">View</button></td></tr>
+          </tbody>
+          <tfoot><tr style="background:#fee2e2;font-weight:700;"><td colspan="4">Total Paid</td><td style="color:var(--danger);">-$8,500</td><td></td></tr></tfoot>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- ADD LEAD MODAL -->
@@ -534,7 +649,7 @@
         this.classList.add('active');
         const page = this.dataset.page;
         document.getElementById('page-' + page).classList.add('active');
-        const titles = { dashboard: 'Dashboard', leads: 'Leads', customers: 'Customers', jobs: 'Jobs', estimates: 'Estimates', invoices: 'Invoices', inventory: 'Inventory', reports: 'Reports' };
+        const titles = { dashboard: 'Dashboard', leads: 'Leads', customers: 'Customers', jobs: 'Jobs', estimates: 'Estimates', invoices: 'Invoices', inventory: 'Inventory', reports: 'Reports', admin: 'Admin' };
         document.getElementById('page-title').textContent = titles[page];
       });
     });
