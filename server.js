@@ -300,6 +300,11 @@ function getDemoJobs() {
   ];
 }
 
+// Serve the adventure animation
+app.get('/adventure', (req, res) => {
+  res.sendFile(path.join(__dirname, 'adventure-slideshow.html'));
+});
+
 // Serve the main page
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
