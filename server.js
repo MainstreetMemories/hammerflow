@@ -96,28 +96,55 @@ app.post('/api/contracts/save', async (req, res) => {
   }
 });
 
-// Get weather
+// Get weather from Open-Meteo API
 app.get('/api/weather', async (req, res) => {
-  // Placeholder - would integrate with weather API
-  const forecast = generateWeatherForecast();
-  res.json(forecast);
+  try {
+    const lat = parseFloat(req.query.lat) || 33.5186; // Default: Birmingham, AL
+    const lon = parseFloat(req.query.lon) || -86.8104;
+    
+    const response = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`
+    );
+    
+    const data = await response.json();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    const forecast = data.daily.time.slice(0, 7).map((date, i) => {
+      const dayIndex = new Date(date).getDay();
+      const code = data.daily.weather_code[i];
+      const precip = data.daily.precipitation_probability_max[i];
+      
+      // Map weather codes to icons
+      const iconMap = {
+        0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+        45: '🌫️', 48: '🌫️',
+        51: '🌧️', 53: '🌧️', 55: '🌧️',
+        61: '🌧️', 63: '🌧️', 65: '🌧️',
+        71: '🌨️', 73: '🌨️', 75: '🌨️',
+        80: '🌦️', 81: '🌦️', 82: '🌦️',
+        95: '⛈️', 96: '⛈️', 99: '⛈️'
+      };
+      
+      const condition = precip > 50 ? 'Rain' : (precip > 20 ? 'Cloudy' : 'Good');
+      const isGood = condition !== 'Rain';
+      
+      return {
+        day: days[dayIndex],
+        icon: iconMap[code] || '⛅',
+        tempHigh: Math.round(data.daily.temperature_2m_max[i]),
+        tempLow: Math.round(data.daily.temperature_2m_min[i]),
+        precip: precip,
+        condition: condition,
+        isGood: isGood
+      };
+    });
+    
+    res.json(forecast);
+  } catch (error) {
+    console.error('Weather error:', error);
+    res.status(500).json({ error: 'Failed to fetch weather' });
+  }
 });
-
-function generateWeatherForecast() {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const today = new Date().getDay();
-  const weather = ['☀️', '⛅', '🌧️', '⛅', '☀️', '☀️', '⛅'];
-  const temps = [78, 75, 62, 70, 80, 82, 77];
-  const conditions = ['Perfect', 'Good', 'Rain', 'Good', 'Great', 'Great', 'Good'];
-  
-  return Array.from({ length: 7 }, (_, i) => ({
-    day: days[(today + i) % 7],
-    icon: weather[i],
-    temp: temps[i],
-    condition: conditions[i],
-    isGood: conditions[i] !== 'Rain'
-  }));
-}
 
 async function getClient() {
   const auth = new google.auth.GoogleAuth({

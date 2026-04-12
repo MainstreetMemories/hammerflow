@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yellow Hammer Roofing - Job Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>pdfjsLib.GlobalWorkerOptions.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
   <style>
     :root {
       --primary: #0f0f1a;
@@ -382,49 +380,8 @@
       <div class="card">
         <div class="card-header"><h2>7-Day Weather Forecast</h2><button class="btn" onclick="checkWeather()">🔄 Refresh</button></div>
         <div id="weather-container" style="padding: 20px;">
-          <div style="display:flex;gap:15px;overflow-x:auto;padding:10px 0;">
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border-radius:12px;">
-              <div style="font-weight:600;color:#2e7d32;">Today</div>
-              <div style="font-size:28px;">☀️</div>
-              <div>78°F</div>
-              <div style="font-size:12px;color:#666;">Perfect</div>
-            </div>
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:#f8f9fa;border-radius:12px;">
-              <div style="font-weight:600;">Mon</div>
-              <div style="font-size:28px;">⛅</div>
-              <div>75°F</div>
-              <div style="font-size:12px;color:#666;">Good</div>
-            </div>
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:#fff3e0;border-radius:12px;">
-              <div style="font-weight:600;">Tue</div>
-              <div style="font-size:28px;">🌧️</div>
-              <div>62°F</div>
-              <div style="font-size:12px;color:#e65100;">Rain - Reschedule</div>
-            </div>
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:#f8f9fa;border-radius:12px;">
-              <div style="font-weight:600;">Wed</div>
-              <div style="font-size:28px;">⛅</div>
-              <div>70°F</div>
-              <div style="font-size:12px;color:#666;">Good</div>
-            </div>
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:#e8f5e9;border-radius:12px;">
-              <div style="font-weight:600;">Thu</div>
-              <div style="font-size:28px;">☀️</div>
-              <div>80°F</div>
-              <div style="font-size:12px;color:#2e7d32;">Perfect</div>
-            </div>
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:#e8f5e9;border-radius:12px;">
-              <div style="font-weight:600;">Fri</div>
-              <div style="font-size:28px;">☀️</div>
-              <div>82°F</div>
-              <div style="font-size:12px;color:#2e7d32;">Perfect</div>
-            </div>
-            <div class="weather-day" style="min-width:120px;text-align:center;padding:15px;background:#f8f9fa;border-radius:12px;">
-              <div style="font-weight:600;">Sat</div>
-              <div style="font-size:28px;">⛅</div>
-              <div>77°F</div>
-              <div style="font-size:12px;color:#666;">Good</div>
-            </div>
+          <div id="weather-days" style="display:flex;gap:12px;overflow-x:auto;padding:10px 0;">
+            <div style="padding:20px;text-align:center;">Loading weather...</div>
           </div>
         </div>
       </div>
@@ -747,6 +704,7 @@
         if (parsed.inventory?.length) appData.inventory = parsed.inventory;
       }
       renderAll();
+      initWeather();
     }
 
     // Save to localStorage
@@ -986,10 +944,54 @@
       input.value = '';
     }
     
-    // Weather check function
-    function checkWeather() {
-      // In production, integrate with weather API
-      alert('Weather check - This would connect to a weather API for accurate 7-day forecasts for your job locations.');
+    // Weather check function - fetches real weather from Open-Meteo
+    async function checkWeather() {
+      const container = document.getElementById('weather-days');
+      container.innerHTML = '<div style="padding:20px;text-align:center;">Loading weather...</div>';
+      
+      try {
+        let lat = 33.5186, lon = -86.8104; // Default: Birmingham, AL
+        
+        // Try to get user's location
+        if (navigator.geolocation) {
+          try {
+            const position = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            });
+            lat = position.coords.latitude;
+            lon = position.coords.longitude;
+          } catch (geoErr) {
+            console.log('Using default location (Birmingham, AL)');
+          }
+        }
+        
+        const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+        const forecast = await response.json();
+        
+        container.innerHTML = forecast.map((day, i) => {
+          const bg = day.isGood 
+            ? 'linear-gradient(135deg,#e8f5e9,#c8e6c9)' 
+            : 'linear-gradient(135deg,#fff3e0,#ffe0b2)';
+          const color = day.isGood ? '#2e7d32' : '#e65100';
+          const status = day.isGood ? '✅ Good' : '⚠️ Rain';
+          
+          return `<div class="weather-day" style="min-width:110px;text-align:center;padding:15px;background:${bg};border-radius:12px;">
+            <div style="font-weight:600;color:${color};">${i === 0 ? 'Today' : day.day}</div>
+            <div style="font-size:28px;">${day.icon}</div>
+            <div>${day.tempHigh}° / ${day.tempLow}°</div>
+            <div style="font-size:11px;color:${color};">${status}</div>
+          </div>`;
+        }).join('');
+        
+      } catch (err) {
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:red;">Failed to load weather</div>';
+        console.error('Weather error:', err);
+      }
+    }
+    
+    // Load weather on init
+    function initWeather() {
+      checkWeather();
     }
     
     initApp();
