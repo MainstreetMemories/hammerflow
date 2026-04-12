@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adventure Awaits - An Animated Journey</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      overflow: hidden;
+    }
+    
+    .screen {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    /* Scene backgrounds with CSS art */
+    .scene {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+    }
+    
+    .scene.active {
+      opacity: 1;
+    }
+    
+    /* Scene 1: Sunrise field */
+    .scene-1 {
+      background: linear-gradient(180deg, 
+        #1a0a2e 0%, 
+        #2d1b4e 20%,
+        #4a2c6a 40%,
+        #ff6b35 60%,
+        #ffa500 80%,
+        #ffcc00 100%
+      );
+    }
+    .scene-1::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 40%;
+      background: linear-gradient(to top, #1a3a1a, transparent);
+    }
+    .figure {
+      position: absolute;
+      bottom: 25%;
+      left: 30%;
+      width: 30px;
+      height: 60px;
+      background: #1a1a1a;
+      border-radius: 15px 15px 5px 5px;
+      animation: figureBreathe 3s ease-in-out infinite;
+    }
+    .figure::before {
+      content: '';
+      position: absolute;
+      top: -25px;
+      left: -5px;
+      width: 40px;
+      height: 40px;
+      background: radial-gradient(circle, #d4a574 60%, #8b5a2b 100%);
+      border-radius: 50%;
+    }
+    .mountains {
+      position: absolute;
+      bottom: 35%;
+      left: 0;
+      width: 100%;
+      height: 30%;
+      background: 
+        linear-gradient(135deg, transparent 50%, #1a1a2e 50%),
+        linear-gradient(45deg, transparent 30%, #1a1a2e 30%);
+      clip-path: polygon(0% 100%, 20% 40%, 35% 70%, 50% 30%, 65% 60%, 80% 35%, 100% 50%, 100% 100%);
+    }
+    .sun {
+      position: absolute;
+      top: 15%;
+      right: 25%;
+      width: 80px;
+      height: 80px;
+      background: radial-gradient(circle, #fff7e0 30%, #ffcc00 60%, transparent 70%);
+      border-radius: 50%;
+      box-shadow: 0 0 60px 30px rgba(255, 200, 0, 0.3);
+    }
+    
+    /* Scene 2: Trail */
+    .scene-2 {
+      background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 50%, #d4a574 100%);
+    }
+    .scene-2::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 50%;
+      background: linear-gradient(to top, #2d4a2d, #3d5a3d);
+    }
+    .trail {
+      position: absolute;
+      bottom: 20%;
+      left: 10%;
+      width: 80%;
+      height: 4px;
+      background: #8b7355;
+      transform: perspective(500px) rotateX(60deg);
+    }
+    .hiker {
+      position: absolute;
+      bottom: 35%;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: walk 2s ease-in-out infinite;
+    }
+    .hiker-body {
+      width: 40px;
+      height: 70px;
+      background: #1a1a1a;
+      border-radius: 20px 20px 10px 10px;
+    }
+    .hiker-head {
+      position: absolute;
+      top: -35px;
+      left: 5px;
+      width: 30px;
+      height: 30px;
+      background: #d4a574;
+      border-radius: 50%;
+    }
+    .backpack {
+      position: absolute;
+      top: 5px;
+      left: -20px;
+      width: 25px;
+      height: 35px;
+      background: #8b4513;
+      border-radius: 5px;
+    }
+    @keyframes walk {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-5px); }
+    }
+    
+    /* Scene 3: Rain */
+    .scene-3 {
+      background: linear-gradient(180deg, #1a1a2e 0%, #2a2a4a 50%, #3a3a5a 100%);
+    }
+    .rain {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        transparent,
+        transparent 50px,
+        rgba(174, 194, 224, 0.3) 50px,
+        rgba(174, 194, 224, 0.3) 52px
+      );
+      animation: rainFall 0.5s linear infinite;
+    }
+    @keyframes rainFall {
+      from { background-position: 0 0; }
+      to { background-position: 0 100px; }
+    }
+    .shelter {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 100px;
+      background: #4a3728;
+      clip-path: polygon(0% 100%, 15% 30%, 50% 0%, 85% 30%, 100% 100%);
+    }
+    .fire-glow {
+      position: absolute;
+      bottom: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 80px;
+      background: radial-gradient(ellipse, rgba(255, 100, 0, 0.4), transparent);
+      animation: flicker 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes flicker {
+      from { opacity: 0.6; }
+      to { opacity: 1; }
+    }
+    
+    /* Scene 4: Campfire */
+    .scene-4 {
+      background: radial-gradient(ellipse at bottom, #1a3a1a 0%, #0a1a0a 60%, #000 100%);
+    }
+    .stars {
+      position: absolute;
+      width: 100%;
+      height: 70%;
+      background: 
+        radial-gradient(2px 2px at 20% 10%, white, transparent),
+        radial-gradient(2px 2px at 40% 20%, white, transparent),
+        radial-gradient(1px 1px at 60% 5%, white, transparent),
+        radial-gradient(2px 2px at 80% 15%, white, transparent),
+        radial-gradient(1px 1px at 90% 25%, white, transparent),
+        radial-gradient(2px 2px at 10% 30%, white, transparent),
+        radial-gradient(1px 1px at 70% 8%, white, transparent),
+        radial-gradient(2px 2px at 30% 35%, white, transparent);
+      animation: twinkle 3s ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    .campfire {
+      position: absolute;
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .flame {
+      width: 40px;
+      height: 60px;
+      background: linear-gradient(to top, #ff4500, #ff6b35, #ffa500, transparent);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      animation: flameDance 0.3s ease-in-out infinite alternate;
+      transform-origin: bottom center;
+    }
+    @keyframes flameDance {
+      from { transform: scaleX(1) rotate(-2deg); }
+      to { transform: scaleX(1.1) rotate(2deg); }
+    }
+    .logs {
+      position: absolute;
+      bottom: -10px;
+      left: -30px;
+      width: 100px;
+      height: 15px;
+      background: #3d2817;
+      border-radius: 3px;
+    }
+    .travelers {
+      position: absolute;
+      bottom: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+    }
+    .person {
+      width: 25px;
+      height: 40px;
+      background: #2a2a2a;
+      border-radius: 12px 12px 5px 5px;
+      position: relative;
+    }
+    .person::before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: 0;
+      width: 25px;
+      height: 25px;
+      background: #d4a574;
+      border-radius: 50%;
+    }
+    
+    /* Text overlay */
+    .text-overlay {
+      position: absolute;
+      bottom: 15%;
+      left: 0;
+      right: 0;
+      text-align: center;
+      padding: 40px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    }
+    .quote {
+      color: white;
+      font-size: clamp(18px, 3vw, 32px);
+      font-style: italic;
+      line-height: 1.6;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .quote.visible {
+      opacity: 1;
+    }
+    
+    /* Progress bar */
+    .progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 4px;
+      background: #f5b041;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+    
+    /* Navigation */
+    .nav-dots {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .dot.active {
+      background: #f5b041;
+      transform: scale(1.3);
+    }
+    
+    .title-card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+    .title-card.visible {
+      opacity: 1;
+    }
+    .title-card h1 {
+      color: #f5b041;
+      font-size: clamp(36px, 6vw, 72px);
+      text-transform: uppercase;
+      letter-spacing: 12px;
+      text-shadow: 0 0 40px rgba(245,176,65,0.5);
+      margin-bottom: 20px;
+    }
+    .title-card p {
+      color: rgba(255,255,255,0.7);
+      font-size: 18px;
+      letter-spacing: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <!-- Title Card -->
+    <div class="title-card visible" id="titleCard">
+      <h1>Adventure</h1>
+      <p>A Journey Awaits</p>
+    </div>
+    
+    <!-- Scene 1 -->
+    <div class="scene scene-1" data-quote="There's a place called adventure that lives just on the horizon.">
+      <div class="mountains"></div>
+      <div class="sun"></div>
+      <div class="figure"></div>
+    </div>
+    
+    <!-- Scene 2 -->
+    <div class="scene scene-2" data-quote="It calls us forth, over the next ridge and around the next bend.">
+      <div class="trail"></div>
+      <div class="hiker">
+        <div class="backpack"></div>
+        <div class="hiker-body"></div>
+        <div class="hiker-head"></div>
+      </div>
+    </div>
+    
+    <!-- Scene 3 -->
+    <div class="scene scene-3" data-quote="But adventure doesn't give up her secrets easily. She keeps them hidden from all but the most willing.">
+      <div class="rain"></div>
+      <div class="shelter"></div>
+      <div class="fire-glow"></div>
+    </div>
+    
+    <!-- Scene 4 -->
+    <div class="scene scene-4" data-quote="Willing to pay the asking price.">
+      <div class="stars"></div>
+      <div class="campfire">
+        <div class="logs"></div>
+        <div class="flame"></div>
+      </div>
+      <div class="travelers">
+        <div class="person"></div>
+        <div class="person"></div>
+        <div class="person"></div>
+      </div>
+    </div>
+    
+    <!-- Text -->
+    <div class="text-overlay">
+      <div class="quote" id="quote"></div>
+    </div>
+    
+    <!-- Progress -->
+    <div class="progress" id="progress"></div>
+    
+    <!-- Nav -->
+    <div class="nav-dots">
+      <div class="dot active" onclick="goToScene(0)"></div>
+      <div class="dot" onclick="goToScene(1)"></div>
+      <div class="dot" onclick="goToScene(2)"></div>
+      <div class="dot" onclick="goToScene(3)"></div>
+    </div>
+  </div>
+  
+  <script>
+    const scenes = document.querySelectorAll('.scene');
+    const dots = document.querySelectorAll('.dot');
+    const quote = document.getElementById('quote');
+    const progress = document.getElementById('progress');
+    const titleCard = document.getElementById('titleCard');
+    
+    let currentScene = 0;
+    const sceneDuration = 12000; // 12 seconds per scene
+    let startTime = Date.now();
+    let isRunning = true;
+    
+    function update() {
+      if (!isRunning) return;
+      
+      const elapsed = Date.now() - startTime;
+      const totalElapsed = elapsed % (sceneDuration * 4);
+      const currentPosition = Math.floor(totalElapsed / sceneDuration);
+      
+      // Update progress
+      const progressPercent = (totalElapsed / (sceneDuration * 4)) * 100;
+      progress.style.width = progressPercent + '%';
+      
+      // Title card
+      if (totalElapsed < 3000) {
+        titleCard.classList.add('visible');
+        scenes.forEach(s => s.classList.remove('active'));
+        quote.classList.remove('visible');
+        return;
+      } else {
+        titleCard.classList.remove('visible');
+      }
+      
+      // Update scenes
+      const sceneIndex = currentPosition;
+      
+      if (sceneIndex !== currentScene) {
+        currentScene = sceneIndex;
+        
+        scenes.forEach((s, i) => {
+          s.classList.toggle('active', i === sceneIndex);
+        });
+        
+        dots.forEach((d, i) => {
+          d.classList.toggle('active', i === sceneIndex);
+        });
+        
+        // Update quote
+        const quoteText = scenes[sceneIndex].dataset.quote;
+        quote.textContent = quoteText;
+        quote.classList.add('visible');
+      }
+      
+      requestAnimationFrame(update);
+    }
+    
+    function goToScene(index) {
+      startTime = Date.now() - (index * sceneDuration);
+      currentScene = index;
+      
+      scenes.forEach((s, i) => {
+        s.classList.toggle('active', i === index);
+      });
+      
+      dots.forEach((d, i) => {
+        d.classList.toggle('active', i === index);
+      });
+      
+      const quoteText = scenes[index].dataset.quote;
+      quote.textContent = quoteText;
+      quote.classList.add('visible');
+    }
+    
+    // Start
+    setTimeout(() => {
+      update();
+    }, 3000);
+  </script>
+</body>
+</html>
