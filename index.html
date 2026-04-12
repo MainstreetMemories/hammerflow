@@ -151,24 +151,24 @@
       </div>
       <div class="stats-grid">
         <div class="stat-card">
-          <h3>Monthly Revenue</h3>
-          <div class="value">$24,500</div>
-          <div class="change positive">↑ 12% from last month</div>
-        </div>
-        <div class="stat-card">
           <h3>Active Jobs</h3>
-          <div class="value">8</div>
-          <div class="change positive">↑ 3 this week</div>
+          <div class="value" id="stat-jobs">8</div>
+          <div class="change" id="stat-jobs-change">In progress</div>
         </div>
         <div class="stat-card">
           <h3>Pending Leads</h3>
-          <div class="value">12</div>
-          <div class="change">5 follow-ups needed</div>
+          <div class="value" id="stat-leads">12</div>
+          <div class="change" id="stat-leads-change">Need follow-up</div>
         </div>
         <div class="stat-card">
-          <h3>Outstanding</h3>
-          <div class="value">$8,200</div>
-          <div class="change negative">3 overdue</div>
+          <h3>Customers</h3>
+          <div class="value" id="stat-customers">24</div>
+          <div class="change">Active accounts</div>
+        </div>
+        <div class="stat-card">
+          <h3>Scheduled</h3>
+          <div class="value" id="stat-scheduled">5</div>
+          <div class="change">This week</div>
         </div>
       </div>
       <div class="card">
@@ -276,10 +276,10 @@
     <!-- REPORTS -->
     <div id="page-reports" class="page">
       <div class="stats-grid">
-        <div class="stat-card"><h3>Total Revenue</h3><div class="value">$124,500</div><div class="change positive">YTD</div></div>
-        <div class="stat-card"><h3>Jobs Completed</h3><div class="value">24</div><div class="change positive">This year</div></divdiv>
+        <div class="stat-card"><h3>Total Revenue (YTD)</h3><div class="value" id="report-revenue">$124,500</div><div class="change positive">All time</div></div>
+        <div class="stat-card"><h3>Outstanding</h3><div class="value" id="report-outstanding">$8,200</div><div class="change negative" id="report-overdue">3 overdue</div></div>
+        <div class="stat-card"><h3>Jobs Completed</h3><div class="value" id="report-completed">24</div><div class="change positive">This year</div></div>
         <div class="stat-card"><h3>Avg Job Value</h3><div class="value">$5,187</div></div>
-        <div class="stat-card"><h3>Conversion Rate</h3><div class="value">42%</div><div class="change positive">↑ 8%</div></div>
       </div>
       <div class="card">
         <div class="card-header"><h2>Revenue by Month</h2></div>
@@ -632,9 +632,23 @@
     
     // ============ RENDER FUNCTIONS ============
     function renderAll() {
+      renderDashboard();
       renderLeads();
       renderCustomers();
       renderJobs();
+    }
+    
+    function renderDashboard() {
+      // Update dashboard stats
+      const activeJobs = appData.jobs.filter(j => j.status === 'scheduled' || j.status === 'new' || j.status === 'in_progress').length;
+      const pendingLeads = appData.leads.filter(l => l.status !== 'converted' && l.status !== 'lost').length;
+      const totalCustomers = appData.customers.length;
+      const scheduledThisWeek = appData.jobs.filter(j => j.status === 'scheduled').length;
+      
+      document.getElementById('stat-jobs').textContent = activeJobs;
+      document.getElementById('stat-leads').textContent = pendingLeads;
+      document.getElementById('stat-customers').textContent = totalCustomers;
+      document.getElementById('stat-scheduled').textContent = scheduledThisWeek;
     }
     
     function renderLeads() {
