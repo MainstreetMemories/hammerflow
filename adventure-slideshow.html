@@ -3,508 +3,252 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adventure Awaits - An Animated Journey</title>
+  <title>Adventure Awaits</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: 'Georgia', serif; }
     
-    body {
-      background: #000;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Georgia', 'Times New Roman', serif;
-      overflow: hidden;
-    }
+    .screen { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
     
-    .screen {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    
-    /* Scene backgrounds with CSS art */
-    .scene {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      transition: opacity 1.5s ease-in-out;
-    }
-    
-    .scene.active {
-      opacity: 1;
-    }
-    
-    /* Scene 1: Sunrise field */
+    /* SCENE 1: Sunrise Field - Complex */
     .scene-1 {
-      background: linear-gradient(180deg, 
-        #1a0a2e 0%, 
-        #2d1b4e 20%,
-        #4a2c6a 40%,
-        #ff6b35 60%,
-        #ffa500 80%,
-        #ffcc00 100%
-      );
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, #0a0a1a 0%, #1a0a2e 20%, #2d1b4e 35%, #ff6b35 65%, #ffa500 80%, #ff8c00 100%);
+      animation: scene1Bg 12s infinite;
     }
-    .scene-1::before {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 40%;
-      background: linear-gradient(to top, #1a3a1a, transparent);
+    @keyframes scene1Bg {
+      0%, 100% { filter: brightness(0.8); }
+      50% { filter: brightness(1.2); }
     }
-    .figure {
-      position: absolute;
-      bottom: 25%;
-      left: 30%;
-      width: 30px;
-      height: 60px;
-      background: #1a1a1a;
-      border-radius: 15px 15px 5px 5px;
-      animation: figureBreathe 3s ease-in-out infinite;
-    }
-    .figure::before {
-      content: '';
-      position: absolute;
-      top: -25px;
-      left: -5px;
-      width: 40px;
-      height: 40px;
-      background: radial-gradient(circle, #d4a574 60%, #8b5a2b 100%);
+    .scene-1 .sun {
+      position: absolute; top: 25%; left: 60%;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, #fff 0%, #ffcc00 40%, #ff6600 70%, transparent 100%);
       border-radius: 50%;
+      box-shadow: 0 0 80px 40px rgba(255,150,0,0.4), 0 0 150px 80px rgba(255,100,0,0.2);
+      animation: sunRize 12s infinite;
     }
-    .mountains {
-      position: absolute;
-      bottom: 35%;
-      left: 0;
-      width: 100%;
-      height: 30%;
-      background: 
-        linear-gradient(135deg, transparent 50%, #1a1a2e 50%),
-        linear-gradient(45deg, transparent 30%, #1a1a2e 30%);
-      clip-path: polygon(0% 100%, 20% 40%, 35% 70%, 50% 30%, 65% 60%, 80% 35%, 100% 50%, 100% 100%);
+    @keyframes sunRize {
+      0% { transform: translateY(20px) scale(0.9); opacity: 0.7; }
+      50% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(20px) scale(0.9); opacity: 0.7; }
     }
-    .sun {
-      position: absolute;
-      top: 15%;
-      right: 25%;
-      width: 80px;
-      height: 80px;
-      background: radial-gradient(circle, #fff7e0 30%, #ffcc00 60%, transparent 70%);
-      border-radius: 50%;
-      box-shadow: 0 0 60px 30px rgba(255, 200, 0, 0.3);
+    .scene-1 .mountains {
+      position: absolute; bottom: 15%; left: 0; right: 0;
+      height: 45%;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+      clip-path: polygon(0% 100%, 0% 40%, 15% 55%, 30% 25%, 45% 45%, 55% 20%, 70% 40%, 85% 30%, 100% 50%, 100% 100%);
     }
-    
-    /* Scene 2: Trail */
-    .scene-2 {
-      background: linear-gradient(180deg, #87ceeb 0%, #b0e0e6 50%, #d4a574 100%);
+    .scene-1 .field {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 20%;
+      background: linear-gradient(to top, #1a3a1a, #2d4a2d);
     }
-    .scene-2::before {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 50%;
-      background: linear-gradient(to top, #2d4a2d, #3d5a3d);
+    .scene-1 .grass {
+      position: absolute; bottom: 15%; width: 3px; height: 20px;
+      background: linear-gradient(to top, #2d4a2d, #4a6a4a);
+      border-radius: 50% 50% 0 0;
+      animation: grassSway 2s ease-in-out infinite;
     }
-    .trail {
-      position: absolute;
-      bottom: 20%;
-      left: 10%;
-      width: 80%;
-      height: 4px;
-      background: #8b7355;
-      transform: perspective(500px) rotateX(60deg);
+    .scene-1 .person {
+      position: absolute; bottom: 18%; left: 25%;
+      animation: personBreathe 3s ease-in-out infinite;
     }
-    .hiker {
-      position: absolute;
-      bottom: 35%;
-      left: 50%;
-      transform: translateX(-50%);
-      animation: walk 2s ease-in-out infinite;
-    }
-    .hiker-body {
-      width: 40px;
-      height: 70px;
-      background: #1a1a1a;
-      border-radius: 20px 20px 10px 10px;
-    }
-    .hiker-head {
-      position: absolute;
-      top: -35px;
-      left: 5px;
-      width: 30px;
-      height: 30px;
-      background: #d4a574;
-      border-radius: 50%;
-    }
-    .backpack {
-      position: absolute;
-      top: 5px;
-      left: -20px;
-      width: 25px;
-      height: 35px;
-      background: #8b4513;
-      border-radius: 5px;
-    }
-    @keyframes walk {
-      0%, 100% { transform: translateX(-50%) translateY(0); }
-      50% { transform: translateX(-50%) translateY(-5px); }
-    }
-    
-    /* Scene 3: Rain */
-    .scene-3 {
-      background: linear-gradient(180deg, #1a1a2e 0%, #2a2a4a 50%, #3a3a5a 100%);
-    }
-    .rain {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: repeating-linear-gradient(
-        transparent,
-        transparent 50px,
-        rgba(174, 194, 224, 0.3) 50px,
-        rgba(174, 194, 224, 0.3) 52px
-      );
-      animation: rainFall 0.5s linear infinite;
-    }
-    @keyframes rainFall {
-      from { background-position: 0 0; }
-      to { background-position: 0 100px; }
-    }
-    .shelter {
-      position: absolute;
-      bottom: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      height: 100px;
-      background: #4a3728;
-      clip-path: polygon(0% 100%, 15% 30%, 50% 0%, 85% 30%, 100% 100%);
-    }
-    .fire-glow {
-      position: absolute;
-      bottom: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 150px;
-      height: 80px;
-      background: radial-gradient(ellipse, rgba(255, 100, 0, 0.4), transparent);
-      animation: flicker 0.5s ease-in-out infinite alternate;
-    }
-    @keyframes flicker {
-      from { opacity: 0.6; }
-      to { opacity: 1; }
-    }
-    
-    /* Scene 4: Campfire */
-    .scene-4 {
-      background: radial-gradient(ellipse at bottom, #1a3a1a 0%, #0a1a0a 60%, #000 100%);
-    }
-    .stars {
-      position: absolute;
-      width: 100%;
-      height: 70%;
-      background: 
-        radial-gradient(2px 2px at 20% 10%, white, transparent),
-        radial-gradient(2px 2px at 40% 20%, white, transparent),
-        radial-gradient(1px 1px at 60% 5%, white, transparent),
-        radial-gradient(2px 2px at 80% 15%, white, transparent),
-        radial-gradient(1px 1px at 90% 25%, white, transparent),
-        radial-gradient(2px 2px at 10% 30%, white, transparent),
-        radial-gradient(1px 1px at 70% 8%, white, transparent),
-        radial-gradient(2px 2px at 30% 35%, white, transparent);
-      animation: twinkle 3s ease-in-out infinite;
-    }
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
-    }
-    .campfire {
-      position: absolute;
-      bottom: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .flame {
-      width: 40px;
-      height: 60px;
-      background: linear-gradient(to top, #ff4500, #ff6b35, #ffa500, transparent);
-      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      animation: flameDance 0.3s ease-in-out infinite alternate;
-      transform-origin: bottom center;
-    }
-    @keyframes flameDance {
-      from { transform: scaleX(1) rotate(-2deg); }
-      to { transform: scaleX(1.1) rotate(2deg); }
-    }
-    .logs {
-      position: absolute;
-      bottom: -10px;
-      left: -30px;
-      width: 100px;
-      height: 15px;
-      background: #3d2817;
-      border-radius: 3px;
-    }
-    .travelers {
-      position: absolute;
-      bottom: 15%;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 20px;
-    }
-    .person {
-      width: 25px;
-      height: 40px;
-      background: #2a2a2a;
+    .scene-1 .person-body {
+      width: 25px; height: 50px; background: #1a1a1a;
       border-radius: 12px 12px 5px 5px;
-      position: relative;
     }
-    .person::before {
-      content: '';
-      position: absolute;
-      top: -15px;
-      left: 0;
-      width: 25px;
-      height: 25px;
-      background: #d4a574;
+    .scene-1 .person-head {
+      position: absolute; top: -20px; left: 0;
+      width: 25px; height: 25px; background: #c9a67a;
       border-radius: 50%;
     }
-    
-    /* Text overlay */
-    .text-overlay {
-      position: absolute;
-      bottom: 15%;
-      left: 0;
-      right: 0;
-      text-align: center;
-      padding: 40px;
-      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    .scene-1 .clouds {
+      position: absolute; top: 10%; left: 0; right: 0;
+      animation: cloudDrift 20s linear infinite;
     }
-    .quote {
-      color: white;
-      font-size: clamp(18px, 3vw, 32px);
-      font-style: italic;
-      line-height: 1.6;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-      opacity: 0;
-      transition: opacity 1s ease;
+    .cloud {
+      position: absolute; background: rgba(255,200,150,0.3);
+      border-radius: 50px;
+      filter: blur(20px);
     }
-    .quote.visible {
-      opacity: 1;
+    .cloud:nth-child(1) { width: 200px; height: 60px; left: 10%; }
+    .cloud:nth-child(2) { width: 150px; height: 40px; left: 60%; }
+    @keyframes cloudDrift {
+      from { transform: translateX(-100px); }
+      to { transform: translateX(100vw); }
     }
     
-    /* Progress bar */
-    .progress {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 4px;
-      background: #f5b041;
-      width: 0%;
-      transition: width 0.1s linear;
+    /* SCENE 2: Trail */
+    .scene-2 {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, #87ceeb 0%, #98d1e8 40%, #c9a67a 80%, #8b7355 100%);
     }
+    .scene-2 .trees { position: absolute; top: 0; left: 0; right: 0; height: 60%; }
+    .tree { position: absolute; bottom: 0; }
+    .tree-trunk { width: 15px; height: 80px; background: #4a3020; margin: 0 auto; }
+    .tree-leaves { width: 80px; height: 60px; background: radial-gradient(ellipse, #2d5a2d 60%, #1a3a1a 100%); border-radius: 50%; margin-left: -32px; margin-top: -40px; }
+    .scene-2 .trail-perspective {
+      position: absolute; bottom: 10%; left: 10%; right: 10%; height: 50%;
+      background: linear-gradient(to top, #6b5344, #8b7355, #a08060);
+      clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+    }
+    .scene-2 .hiker { position: absolute; bottom: 35%; left: 45%; animation: hikerWalk 1.5s ease-in-out infinite; }
+    .hiker-pack { position: absolute; top: 5px; left: -20px; width: 30px; height: 40px; background: #8b4513; border-radius: 5px; }
+    .hiker-body { width: 35px; height: 60px; background: #2a4a6a; border-radius: 15px; }
+    .hiker-head { position: absolute; top: -25px; left: 5px; width: 25px; height: 25px; background: #c9a67a; border-radius: 50%; }
+    .hiker-hat { position: absolute; top: -5px; left: 0; width: 30px; height: 10px; background: #8b4513; border-radius: 50%; }
+    @keyframes hikerWalk { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
     
-    /* Navigation */
-    .nav-dots {
-      position: absolute;
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 15px;
+    /* SCENE 3: Rain */
+    .scene-3 {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, #0a0a15 0%, #1a1a2e 50%, #2a2a4a 100%);
     }
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    .dot.active {
-      background: #f5b041;
-      transform: scale(1.3);
-    }
+    .scene-3 .lightning { position: absolute; inset: 0; background: rgba(255,255,255,0); animation: lightning 8s infinite; }
+    @keyframes lightning { 0%, 100% { background: rgba(255,255,255,0); } 92%, 94%, 96% { background: rgba(255,255,255,0); } 93% { background: rgba(255,255,255,0.3); } 95% { background: rgba(255,255,255,0.4); } }
+    .scene-3 .rain-layer { position: absolute; inset: 0; background: repeating-linear-gradient(transparent, transparent 40px, rgba(150,180,220,0.3) 40px, rgba(150,180,220,0.3) 43px); animation: rainFast 0.3s linear infinite; }
+    @keyframes rainFast { from { background-position: 0 0; } to { background-position: 0 100px; } }
+    .scene-3 .shelter-roof { position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%); width: 250px; height: 100px; background: linear-gradient(to bottom, #3a2a1a, #2a1a0a); clip-path: polygon(10% 100%, 50% 0%, 90% 100%); }
+    .scene-3 .shelter-walls { position: absolute; bottom: 10%; left: 50%; transform: translateX(-50%); width: 200px; height: 60px; background: rgba(30,20,10,0.8); clip-path: polygon(0% 100%, 5% 0%, 95% 0%, 100% 100%); }
+    .scene-3 .fire { position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%); }
+    .fire-glow { width: 100px; height: 60px; background: radial-gradient(ellipse at bottom, rgba(255,100,0,0.8), rgba(255,50,0,0.4), transparent); animation: fireGlow 0.2s ease-in-out infinite alternate; filter: blur(10px); }
+    @keyframes fireGlow { from { opacity: 0.7; } to { opacity: 1; } }
+    .fire-flame { position: absolute; bottom: 0; left: 35px; width: 30px; height: 40px; background: linear-gradient(to top, #ff4500, #ff6600, #ffa500, transparent); border-radius: 50%; animation: flameFlicker 0.15s ease-in-out infinite alternate; transform-origin: bottom center; }
+    @keyframes flameFlicker { from { transform: scaleX(1) rotate(-3deg); } to { transform: scaleX(1.15) rotate(3deg); } }
+    .fire-logs { position: absolute; bottom: -8px; left: 10px; width: 50px; height: 12px; background: #3d2010; border-radius: 3px; }
+    .scene-3 .person-rain { position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%); }
+    .rain-umbrella { position: absolute; top: -30px; left: -20px; width: 70px; height: 15px; background: #2a1a1a; border-radius: 50%; }
+    .person-rain-body { width: 30px; height: 50px; background: #1a3a5a; border-radius: 12px; }
+    .person-rain-head { position: absolute; top: -20px; left: 2px; width: 26px; height: 26px; background: #c9a67a; border-radius: 50%; }
     
-    .title-card {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
-    .title-card.visible {
-      opacity: 1;
-    }
-    .title-card h1 {
-      color: #f5b041;
-      font-size: clamp(36px, 6vw, 72px);
-      text-transform: uppercase;
-      letter-spacing: 12px;
-      text-shadow: 0 0 40px rgba(245,176,65,0.5);
-      margin-bottom: 20px;
-    }
-    .title-card p {
-      color: rgba(255,255,255,0.7);
-      font-size: 18px;
-      letter-spacing: 4px;
-    }
+    /* SCENE 4: Campfire */
+    .scene-4 { position: absolute; inset: 0; background: radial-gradient(ellipse at bottom, #0a1a0a 0%, #051005 50%, #000 100%); }
+    .scene-4 .moon { position: absolute; top: 15%; right: 20%; width: 80px; height: 80px; background: radial-gradient(circle, #ffffcc 0%, #ddddaa 50%, transparent 70%); border-radius: 50%; box-shadow: 0 0 40px 20px rgba(255,255,200,0.2); }
+    .scene-4 .stars-layer { position: absolute; inset: 0; }
+    .star { position: absolute; background: white; border-radius: 50%; animation: starTwinkle 2s ease-in-out infinite; }
+    .star:nth-child(1) { width: 3px; height: 3px; top: 10%; left: 15%; }
+    .star:nth-child(2) { width: 2px; height: 2px; top: 20%; left: 30%; animation-delay: 0.3s; }
+    .star:nth-child(3) { width: 3px; height: 3px; top: 5%; left: 50%; animation-delay: 0.7s; }
+    .star:nth-child(4) { width: 2px; height: 2px; top: 25%; left: 70%; animation-delay: 1s; }
+    .star:nth-child(5) { width: 3px; height: 3px; top: 15%; left: 85%; animation-delay: 1.3s; }
+    .star:nth-child(6) { width: 2px; height: 2px; top: 30%; left: 10%; animation-delay: 0.5s; }
+    .star:nth-child(7) { width: 3px; height: 3px; top: 8%; left: 60%; animation-delay: 0.9s; }
+    .star:nth-child(8) { width: 2px; height: 2px; top: 18%; left: 40%; animation-delay: 1.2s; }
+    @keyframes starTwinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    .scene-4 .mountains-sil { position: absolute; bottom: 30%; left: 0; right: 0; height: 25%; background: #050508; clip-path: polygon(0% 100%, 10% 40%, 25% 70%, 40% 30%, 55% 60%, 70% 35%, 85% 55%, 100% 45%, 100% 100%); }
+    .scene-4 .campfire-group { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); }
+    .camp-logs { position: absolute; bottom: 0; left: -30px; width: 60px; height: 15px; background: #2d1810; border-radius: 3px; }
+    .camp-flame-main { position: absolute; bottom: 10px; left: 10px; width: 25px; height: 50px; background: linear-gradient(to top, #ff2200, #ff5500, #ff8800, #ffaa00, transparent); border-radius: 50%; animation: campFlame1 0.2s ease-in-out infinite alternate; transform-origin: bottom center; }
+    .camp-flame-sec { position: absolute; bottom: 8px; left: 25px; width: 18px; height: 35px; background: linear-gradient(to top, #ff3300, #ff6600, #ff9900, transparent); border-radius: 50%; animation: campFlame2 0.25s ease-in-out infinite alternate; transform-origin: bottom center; }
+    @keyframes campFlame1 { from { transform: scaleY(1) scaleX(1) rotate(-2deg); } to { transform: scaleY(1.1) scaleX(1.05) rotate(2deg); } }
+    @keyframes campFlame2 { from { transform: scaleY(1) scaleX(1) rotate(1deg); } to { transform: scaleY(1.15) scaleX(0.95) rotate(-1deg); } }
+    .camp-glow { position: absolute; bottom: 0; left: -40px; width: 80px; height: 50px; background: radial-gradient(ellipse, rgba(255,100,0,0.5), transparent); animation: campGlow 1s ease-in-out infinite alternate; }
+    @keyframes campGlow { from { opacity: 0.6; } to { opacity: 1; } }
+    .scene-4 .travelers-group { position: absolute; bottom: 12%; left: 50%; transform: translateX(-50%); display: flex; gap: 25px; }
+    .traveler-body { width: 20px; height: 35px; background: #1a1a1a; border-radius: 10px 10px 3px 3px; }
+    .traveler-head { position: absolute; top: -12px; left: 2px; width: 16px; height: 16px; background: #1a1a1a; border-radius: 50%; }
+    
+    /* Text */
+    .text-container { position: absolute; bottom: 12%; left: 0; right: 0; text-align: center; padding: 40px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
+    .quote { color: white; font-size: clamp(16px, 2.5vw, 28px); font-style: italic; line-height: 1.6; text-shadow: 2px 2px 10px rgba(0,0,0,0.9); opacity: 0; transition: opacity 1.5s ease; }
+    .quote.visible { opacity: 1; }
+    .progress-container { position: absolute; bottom: 0; left: 0; right: 0; height: 5px; background: rgba(255,255,255,0.1); }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, #f5b041, #e8b923); width: 0%; transition: width 0.1s linear; }
+    .nav-dots { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); display: flex; gap: 15px; z-index: 100; }
+    .nav-dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: all 0.3s; }
+    .nav-dot.active { background: #f5b041; transform: scale(1.4); box-shadow: 0 0 10px rgba(245,176,65,0.5); }
+    .title-card { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(20,20,40,0.95), rgba(0,0,0,0.98)); z-index: 50; transition: opacity 1s ease; }
+    .title-card.hidden { opacity: 0; pointer-events: none; }
+    .title-card h1 { font-size: clamp(48px, 10vw, 96px); color: #f5b041; text-transform: uppercase; letter-spacing: 20px; text-shadow: 0 0 60px rgba(245,176,65,0.6), 0 0 120px rgba(245,176,65,0.3); animation: titleGlow 2s ease-in-out infinite alternate; }
+    @keyframes titleGlow { from { text-shadow: 0 0 60px rgba(245,176,65,0.6); } to { text-shadow: 0 0 80px rgba(245,176,65,0.8); } }
+    .title-card p { color: rgba(255,255,255,0.6); font-size: 18px; letter-spacing: 8px; margin-top: 20px; text-transform: uppercase; }
+    .scene { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease; }
+    .scene.active { opacity: 1; }
   </style>
 </head>
 <body>
   <div class="screen">
-    <!-- Title Card -->
-    <div class="title-card visible" id="titleCard">
-      <h1>Adventure</h1>
-      <p>A Journey Awaits</p>
-    </div>
+    <div class="title-card" id="titleCard"><h1>Adventure</h1><p>A Journey Awaits</p></div>
     
-    <!-- Scene 1 -->
     <div class="scene scene-1" data-quote="There's a place called adventure that lives just on the horizon.">
-      <div class="mountains"></div>
-      <div class="sun"></div>
-      <div class="figure"></div>
+      <div class="clouds"><div class="cloud"></div><div class="cloud"></div></div>
+      <div class="sun"></div><div class="mountains"></div><div class="field"></div>
+      <div class="grass" style="left: 20%"></div><div class="grass" style="left: 35%; animation-delay: 0.3s"></div><div class="grass" style="left: 50%; animation-delay: 0.6s"></div><div class="grass" style="left: 65%; animation-delay: 0.9s"></div>
+      <div class="person"><div class="person-head"></div><div class="person-body"></div></div>
     </div>
     
-    <!-- Scene 2 -->
     <div class="scene scene-2" data-quote="It calls us forth, over the next ridge and around the next bend.">
-      <div class="trail"></div>
-      <div class="hiker">
-        <div class="backpack"></div>
-        <div class="hiker-body"></div>
-        <div class="hiker-head"></div>
-      </div>
+      <div class="trees"><div class="tree" style="left: 5%"><div class="tree-leaves"></div><div class="tree-trunk"></div></div><div class="tree" style="left: 15%"><div class="tree-leaves"></div><div class="tree-trunk"></div></div><div class="tree" style="left: 75%"><div class="tree-leaves"></div><div class="tree-trunk"></div></div><div class="tree" style="left: 85%"><div class="tree-leaves"></div><div class="tree-trunk"></div></div></div>
+      <div class="trail-perspective"></div>
+      <div class="hiker"><div class="hiker-pack"></div><div class="hiker-head"><div class="hiker-hat"></div></div><div class="hiker-body"></div></div>
     </div>
     
-    <!-- Scene 3 -->
     <div class="scene scene-3" data-quote="But adventure doesn't give up her secrets easily. She keeps them hidden from all but the most willing.">
-      <div class="rain"></div>
-      <div class="shelter"></div>
-      <div class="fire-glow"></div>
+      <div class="lightning"></div><div class="rain-layer"></div>
+      <div class="shelter-roof"></div><div class="shelter-walls"></div>
+      <div class="fire"><div class="fire-glow"></div><div class="fire-logs"></div><div class="fire-flame"></div></div>
+      <div class="person-rain"><div class="rain-umbrella"></div><div class="person-rain-head"></div><div class="person-rain-body"></div></div>
     </div>
     
-    <!-- Scene 4 -->
     <div class="scene scene-4" data-quote="Willing to pay the asking price.">
-      <div class="stars"></div>
-      <div class="campfire">
-        <div class="logs"></div>
-        <div class="flame"></div>
+      <div class="moon"></div>
+      <div class="stars-layer"><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div></div>
+      <div class="mountains-sil"></div>
+      <div class="travelers-group">
+        <div class="traveler-silhouette"><div class="traveler-head"></div><div class="traveler-body"></div></div>
+        <div class="traveler-silhouette"><div class="traveler-head"></div><div class="traveler-body"></div></div>
+        <div class="traveler-silhouette"><div class="traveler-head"></div><div class="traveler-body"></div></div>
+        <div class="traveler-silhouette"><div class="traveler-head"></div><div class="traveler-body"></div></div>
       </div>
-      <div class="travelers">
-        <div class="person"></div>
-        <div class="person"></div>
-        <div class="person"></div>
-      </div>
+      <div class="campfire-group"><div class="camp-glow"></div><div class="camp-logs"></div><div class="camp-flame-main"></div><div class="camp-flame-sec"></div></div>
     </div>
     
-    <!-- Text -->
-    <div class="text-overlay">
-      <div class="quote" id="quote"></div>
-    </div>
-    
-    <!-- Progress -->
-    <div class="progress" id="progress"></div>
-    
-    <!-- Nav -->
+    <div class="text-container"><div class="quote" id="quote"></div></div>
+    <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
     <div class="nav-dots">
-      <div class="dot active" onclick="goToScene(0)"></div>
-      <div class="dot" onclick="goToScene(1)"></div>
-      <div class="dot" onclick="goToScene(2)"></div>
-      <div class="dot" onclick="goToScene(3)"></div>
+      <div class="nav-dot active" onclick="goTo(0)"></div>
+      <div class="nav-dot" onclick="goTo(1)"></div>
+      <div class="nav-dot" onclick="goTo(2)"></div>
+      <div class="nav-dot" onclick="goTo(3)"></div>
     </div>
   </div>
   
   <script>
     const scenes = document.querySelectorAll('.scene');
-    const dots = document.querySelectorAll('.dot');
+    const dots = document.querySelectorAll('.nav-dot');
     const quote = document.getElementById('quote');
-    const progress = document.getElementById('progress');
+    const progressBar = document.getElementById('progressBar');
     const titleCard = document.getElementById('titleCard');
-    
     let currentScene = 0;
-    const sceneDuration = 12000; // 12 seconds per scene
+    const sceneTime = 12000;
     let startTime = Date.now();
-    let isRunning = true;
     
     function update() {
-      if (!isRunning) return;
-      
       const elapsed = Date.now() - startTime;
-      const totalElapsed = elapsed % (sceneDuration * 4);
-      const currentPosition = Math.floor(totalElapsed / sceneDuration);
+      const totalTime = elapsed % (sceneTime * 4);
+      const sceneIndex = Math.floor(totalTime / sceneTime);
+      progressBar.style.width = (totalTime / (sceneTime * 4) * 100) + '%';
       
-      // Update progress
-      const progressPercent = (totalElapsed / (sceneDuration * 4)) * 100;
-      progress.style.width = progressPercent + '%';
-      
-      // Title card
-      if (totalElapsed < 3000) {
-        titleCard.classList.add('visible');
+      if (elapsed < 4000) {
+        titleCard.classList.remove('hidden');
         scenes.forEach(s => s.classList.remove('active'));
-        quote.classList.remove('visible');
         return;
       } else {
-        titleCard.classList.remove('visible');
+        titleCard.classList.add('hidden');
       }
-      
-      // Update scenes
-      const sceneIndex = currentPosition;
       
       if (sceneIndex !== currentScene) {
         currentScene = sceneIndex;
-        
-        scenes.forEach((s, i) => {
-          s.classList.toggle('active', i === sceneIndex);
-        });
-        
-        dots.forEach((d, i) => {
-          d.classList.toggle('active', i === sceneIndex);
-        });
-        
-        // Update quote
-        const quoteText = scenes[sceneIndex].dataset.quote;
-        quote.textContent = quoteText;
+        scenes.forEach((s, i) => s.classList.toggle('active', i === sceneIndex));
+        dots.forEach((d, i) => d.classList.toggle('active', i === sceneIndex));
+        quote.textContent = scenes[sceneIndex].dataset.quote;
         quote.classList.add('visible');
       }
-      
       requestAnimationFrame(update);
     }
     
-    function goToScene(index) {
-      startTime = Date.now() - (index * sceneDuration);
-      currentScene = index;
-      
-      scenes.forEach((s, i) => {
-        s.classList.toggle('active', i === index);
-      });
-      
-      dots.forEach((d, i) => {
-        d.classList.toggle('active', i === index);
-      });
-      
-      const quoteText = scenes[index].dataset.quote;
-      quote.textContent = quoteText;
-      quote.classList.add('visible');
-    }
-    
-    // Start
-    setTimeout(() => {
-      update();
-    }, 3000);
+    function goTo(index) { startTime = Date.now() - (index * sceneTime); }
+    setTimeout(() => update(), 4000);
   </script>
 </body>
 </html>
