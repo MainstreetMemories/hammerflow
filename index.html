@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yellow Hammer Roofing - Job Management</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>pdfjsLib.GlobalWorkerOptions.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
   <style>
     :root {
       --primary: #0f0f1a;
@@ -947,53 +949,68 @@
       const file = input.files[0];
       if (!file) return;
       
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        const base64 = e.target.result.split(',')[1];
-        const mimeType = file.type || 'image/png';
+      const btn = document.querySelector('.action-btn.flash');
+      btn.textContent = '⏳ Scanning...';
+      
+      try {
+        let base64, mimeType;
         
-        // Show loading
-        const btn = document.querySelector('.action-btn.flash');
-        btn.textContent = '⏳ Scanning...';
-        
-        try {
-          const response = await fetch('/api/contracts/extract', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64, mimeType })
+        if (file.type === 'application/pdf') {
+          // Convert PDF first page to image
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const page = await pdf.getPage(1);
+          
+          const scale = 2;
+          const viewport = page.getViewport({ scale });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+          base64 = canvas.toDataURL('image/png').split(',')[1];
+          mimeType = 'image/png';
+        } else {
+          // Image file
+          const reader = new FileReader();
+          await new Promise((resolve) => {
+            reader.onload = (e) => {
+              base64 = e.target.result.split(',')[1];
+              mimeType = file.type || 'image/png';
+              resolve();
+            };
+            reader.readAsDataURL(file);
           });
-          
-          const result = await response.json();
-          
-          if (result.success) {
-            const data = result.extracted;
-            const confirmMsg = `Contract scanned!\n\nCustomer: ${data.customer}\nPhone: ${data.phone}\nAddress: ${data.address}\nPrice: $${data.contractPrice}\nShingle: ${data.shingleType}\n\nSave to jobs?`;
-            if (confirm(confirmMsg)) {
-              await fetch('/api/contracts/save', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-              });
-              alert('Contract saved to Google Sheet!');
-            }
-          } else {
-            alert('Scan failed: ' + (result.error || 'Unknown error'));
-          }
-        } catch (err) {
-          alert('Error: ' + err.message);
         }
         
-        btn.textContent = '📄 Scan Contract';
-      };
-      
-      if (file.type === 'application/pdf') {
-        // For PDF, we'd need to convert first - simplified for now
-        alert('PDF support coming soon! Please upload an image for now.');
-      } else {
-        reader.readAsDataURL(file);
+        const response = await fetch('/api/contracts/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, mimeType })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          const data = result.extracted;
+          const confirmMsg = `Contract scanned!\n\nCustomer: ${data.customer}\nPhone: ${data.phone}\nAddress: ${data.address}\nPrice: $${data.contractPrice}\nShingle: ${data.shingleType}\n\nSave to jobs?`;
+          if (confirm(confirmMsg)) {
+            await fetch('/api/contracts/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+            alert('Contract saved to Google Sheet!');
+          }
+        } else {
+          alert('Scan failed: ' + (result.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
       }
       
-      input.value = ''; // Reset
+      btn.textContent = '📄 Scan Contract';
+      input.value = '';
     }
     
     // Weather check function
