@@ -312,3 +312,8 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 HammerFlow running on port ${PORT}`));
+
+// Serve manual
+app.get('/manual', (req, res) => {
+  res.sendFile(path.join(__dirname, 'MANUAL.md'));
+});
