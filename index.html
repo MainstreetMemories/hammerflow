@@ -1001,10 +1001,124 @@
           <td>${job.type}</td>
           <td><span class="status ${job.status}">${job.status}</span></td>
           <td>${job.startDate || '-'}</td>
-          <td>$${job.value.toLocaleString()}</td>
-          <td><button class="btn">Edit</button></td>
+          <td>$${(job.value || 0).toLocaleString()}</td>
+          <td>
+            <button class="btn" onclick="editItem('job', ${job.id})">Edit</button>
+            <button class="btn" style="color:red;" onclick="deleteItem('job', '${job.id}')">×</button>
+          </td>
         </tr>`;
       }).join('');
+    }
+    
+    // Edit item - populate form and open modal
+    function editItem(type, id) {
+      let item = null;
+      if (type === 'lead') item = appData.leads.find(l => l.id === id);
+      else if (type === 'customer') item = appData.customers.find(c => c.id === id);
+      else if (type === 'job') item = appData.jobs.find(j => j.id === id);
+      else if (type === 'invoice') item = appData.invoices.find(i => i.id === id);
+      
+      if (!item) {
+        alert('Item not found');
+        return;
+      }
+      
+      // Populate form fields
+      const modal = document.getElementById('modal-' + type);
+      if (!modal) {
+        openModal(type);
+        setTimeout(() => populateForm(type, item), 100);
+        return;
+      }
+      
+      populateForm(type, item);
+      openModal(type);
+    }
+    
+    function populateForm(type, item) {
+      const modal = document.getElementById('modal-' + type);
+      if (!modal) return;
+      
+      const form = modal.querySelector('form');
+      if (!form) return;
+      
+      // Set form action for editing
+      form.dataset.editId = item.id;
+      
+      // Fill in fields
+      Object.keys(item).forEach(key => {
+        const input = form.querySelector(`[name="${key}"]`);
+        if (input) {
+          input.value = item[key];
+        }
+      });
+    }
+    
+    // Update saveItem to handle editing
+    function saveItem(type, e) {
+      e.preventDefault();
+      const form = e.target;
+      const editId = form.dataset.editId;
+      const data = new FormData(form);
+      const obj = Object.fromEntries(data);
+      
+      if (editId) {
+        // Update existing
+        if (type === 'lead') {
+          const idx = appData.leads.findIndex(l => l.id == editId);
+          if (idx >= 0) appData.leads[idx] = { ...appData.leads[idx], ...obj };
+        } else if (type === 'customer') {
+          const idx = appData.customers.findIndex(c => c.id == editId);
+          if (idx >= 0) appData.customers[idx] = { ...appData.customers[idx], ...obj };
+        } else if (type === 'job') {
+          const idx = appData.jobs.findIndex(j => j.id === editId);
+          if (idx >= 0) appData.jobs[idx] = { ...appData.jobs[idx], ...obj, value: parseFloat(obj.value) || 0 };
+        }
+        delete form.dataset.editId;
+      } else {
+        // Add new (existing code)
+        if (type === 'lead') {
+          obj.id = Date.now();
+          obj.status = 'new';
+          obj.created = new Date().toISOString().split('T')[0];
+          appData.leads.push(obj);
+        } else if (type === 'customer') {
+          obj.id = Date.now();
+          obj.jobs = 0;
+          obj.totalSpent = 0;
+          obj.created = new Date().toISOString().split('T')[0];
+          appData.customers.push(obj);
+        } else if (type === 'job') {
+          const jobNum = String(appData.jobs.length + 1).padStart(3, '0');
+          obj.id = 'JOB-' + jobNum;
+          obj.status = 'new';
+          obj.value = parseFloat(obj.value) || 0;
+          obj.created = new Date().toISOString().split('T')[0];
+          appData.jobs.push(obj);
+        } else if (type === 'invoice') {
+          const invNum = String(appData.invoices.length + 1).padStart(4, '0');
+          obj.id = 'INV-' + invNum;
+          obj.status = 'pending';
+          obj.created = new Date().toISOString().split('T')[0];
+          appData.invoices.push(obj);
+        } else if (type === 'vendor') {
+          obj.id = Date.now();
+          obj.balance = parseFloat(obj.balance) || 0;
+          appData.vendors = appData.vendors || [];
+          appData.vendors.push(obj);
+        } else if (type === 'sales') {
+          obj.id = Date.now();
+          obj.closed = parseFloat(obj.closed) || 0;
+          appData.salesTeam = appData.salesTeam || [];
+          appData.salesTeam.push(obj);
+        }
+      }
+      
+      saveToStorage();
+      renderAll();
+      closeModal(type);
+      alert(type.charAt(0).toUpperCase() + type.slice(1) + ' saved!');
+      form.reset();
     }
 
     console.log('HammerFlow v1.1 loaded');
